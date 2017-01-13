@@ -121,8 +121,9 @@ union gpio_ospeedr {
  * 复位值: 0x6400 0000(GPIOA), 0x0000 0100(GPIOB), 0x0000 0000(其它)
  * 访问: word/half-word/byte访问
  */
-#define GPIO_Pull_Up 0x00
-#define GPIO_Pull_Down 0x01
+#define GPIO_Pull_No 0x00
+#define GPIO_Pull_Up 0x01
+#define GPIO_Pull_Down 0x02
 #define Gen_Gpio_Pin_PuPd(pin, pupd) ((pupd) << 2 * (pin))
 struct gpio_pupdr_bits {
     uint32 pin0 : 2;

@@ -1,6 +1,15 @@
 #include <stm32f407.h>
 
-int data;
+#define KEY (GPIOH->IDR.bits.pin15)
+
+#define LED_R (GPIOI->ODR.bits.pin5)
+#define LED_G (GPIOI->ODR.bits.pin6)
+#define LED_B (GPIOI->ODR.bits.pin7)
+#define ON 0
+#define OFF 1
+
+int times = 0;
+bool state = FALSE;
 
 void init_led() {
     RCC->AHB1ENR.bits.gpioi = 1;
@@ -22,48 +31,72 @@ void init_led() {
     GPIOI->OSPEEDR.bits.pin7 = GPIO_OSpeed_Very_High;
 }
 
+void init_key() {
+	RCC->AHB1ENR.bits.gpioh = 1;
+    
+    GPIOH->MODER.bits.pin15 = GPIO_Mode_In;
+    GPIOH->OSPEEDR.bits.pin15 = GPIO_OSpeed_Very_High;
+    GPIOH->PUPDR.bits.pin15 = GPIO_Pull_No;
+}
+
+void init_exit() {
+    RCC->APB2ENR.bits.syscfg = 1;
+    SYSCFG->EXTICR.bits.exit15 = Exti_PortSource_H;
+    EXIT->IMR.bits.tr15 = 1;
+    EXIT->EMR.bits.tr15 = 0;
+
+    EXIT->RTSR.bits.tr15 = 0;
+    EXIT->FTSR.bits.tr15 = 1;
+
+    NVIC->IPR.bits.EXTI15_10 = 0x00;
+    NVIC->ISER.bits.EXTI15_10 = 1;
+}
+
+void delay(int c) {
+    for (int i = 0; i < c; i++);
+}
+
+void EXTI15_10_IRQHandler(void) {
+    if (EXIT->PR.bits.tr15) {
+        delay(1000);
+        if (!KEY) {
+            times++;
+            if (times > 2)
+                times = 0;
+        }
+        switch (times) {
+        case 0:
+            LED_R = ON;
+            LED_G = OFF;
+            LED_B = OFF;
+            break;
+        case 1:
+            LED_R = OFF;
+            LED_G = ON;
+            LED_B = OFF;
+            break;
+        case 2:
+            LED_R = OFF;
+            LED_G = OFF;
+            LED_B = ON;
+            break;
+        default:
+            break;
+        }
+        EXIT->PR.bits.tr15 = 1;
+    }
+}
+
 int main(void) {
     init_led();
+    init_key();
+    init_exit();
 
-    data = 31;
-
-    GPIOI->BSRR.hwords.reset.bits.pin5 = 1;
-    GPIOI->BSRR.hwords.reset.bits.pin7 = 1;
-    GPIOI->BSRR.hwords.set.bits.pin6 = 1;
-
-    GPIOI->ODR.bits.pin5 = 0;
-    GPIOI->ODR.bits.pin6 = 0;
-    GPIOI->ODR.bits.pin7 = 0;
-   
-    GPIOI->ODR.bits.pin5 = 0;
-    GPIOI->ODR.bits.pin6 = 0;
-    GPIOI->ODR.bits.pin7 = 1;    
-    
-    GPIOI->ODR.bits.pin5 = 0;
-    GPIOI->ODR.bits.pin6 = 1;
-    GPIOI->ODR.bits.pin7 = 0;
-    
-    GPIOI->ODR.bits.pin5 = 0;
-    GPIOI->ODR.bits.pin6 = 1;
-    GPIOI->ODR.bits.pin7 = 1;
-
-    GPIOI->ODR.bits.pin5 = 1;
-    GPIOI->ODR.bits.pin6 = 0;
-    GPIOI->ODR.bits.pin7 = 0;
-    
-    GPIOI->ODR.bits.pin5 = 1;
-    GPIOI->ODR.bits.pin6 = 0;
-    GPIOI->ODR.bits.pin7 = 1;
-    
-    GPIOI->ODR.bits.pin5 = 1;
-    GPIOI->ODR.bits.pin6 = 1;
-    GPIOI->ODR.bits.pin7 = 0;    
-    
     GPIOI->ODR.bits.pin5 = 1;
     GPIOI->ODR.bits.pin6 = 1;
     GPIOI->ODR.bits.pin7 = 1;
     
     while(1) {
-        
+
     }
 }

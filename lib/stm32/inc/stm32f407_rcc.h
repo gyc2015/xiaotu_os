@@ -45,6 +45,57 @@ union rcc_ahb1enr {
     struct rcc_ahb1enr_bits bits;
     uint32 all;
 };
+/*
+ * AHB1外设时钟使能寄存器 RCC_AHB2ENR
+ * 偏移地址: 0x34
+ * 复位值: 0x0000 0000
+ * 访问: 没有等待状态, word/half-word/byte访问
+ */
+struct rcc_ahb2enr_bits {
+    uint32 dcmi : 1; /* Camera Interface */
+    uint32 r0 : 3;
+    uint32 cryp : 1; /* Cryptographic module */
+    uint32 hash : 1; /* Hash */
+    uint32 rng : 1; /* random number */
+    uint32 otgfs : 1; /* usb otg fs */
+    uint32 r1 : 24;
+};
+union rcc_ahb2enr {
+    struct rcc_ahb2enr_bits bits;
+    uint32 all;
+};
+
+/*
+ * AHB1外设时钟使能寄存器 RCC_AHB2ENR
+ * 偏移地址: 0x44
+ * 复位值: 0x0000 0000
+ * 访问: 没有等待状态, word/half-word/byte访问
+ */
+struct rcc_apb2enr_bits {
+    uint32 tim1 : 1;
+    uint32 tim8 : 1;
+    uint32 r0 : 2;
+    uint32 usart1 : 1;
+    uint32 usart6 : 1;
+    uint32 r1 : 2;
+    uint32 adc1 : 1;
+    uint32 adc2 : 1;
+    uint32 adc3 : 1;
+    uint32 sdio : 1;
+    uint32 spi1 : 1;
+    uint32 r2 : 1;
+    uint32 syscfg : 1;
+    uint32 r3 : 1;
+    uint32 tim9 : 1;
+    uint32 tim10 : 1;
+    uint32 tim11 : 1;
+    uint32 r4 : 13;
+};
+union rcc_apb2enr {
+    struct rcc_apb2enr_bits bits;
+    uint32 all;
+};
+
 
 typedef struct rcc_regs {
     volatile  uint32 CR;            /* 时钟控制寄存器, offset: 0x00 */
@@ -59,11 +110,11 @@ typedef struct rcc_regs {
     volatile  uint32 APB2RSTR;      /* APB2外设复位寄存器, offset: 0x24 */
     uint32  RESERVED1[2];           /* 保留, 0x28-0x2C */
     volatile  union rcc_ahb1enr AHB1ENR;       /* AHB1外设时钟使能寄存器, offset: 0x30 */
-    volatile  uint32 AHB2ENR;       /* AHB2外设时钟使能寄存器, offset: 0x34 */
+    volatile  union rcc_ahb2enr AHB2ENR;       /* AHB2外设时钟使能寄存器, offset: 0x34 */
     volatile  uint32 AHB3ENR;       /* AHB3外设时钟使能寄存器, offset: 0x38 */
     uint32 RESERVED2;               /* 保留, 0x3C */
     volatile  uint32 APB1ENR;       /* APB1外设时钟使能寄存器, offset: 0x40 */
-    volatile  uint32 APB2ENR;       /* APB2外设时钟使能寄存器, offset: 0x44 */
+    volatile  union rcc_apb2enr APB2ENR;       /* APB2外设时钟使能寄存器, offset: 0x44 */
     uint32 RESERVED3[2];            /* 保留, 0x48-0x4C */
     volatile  uint32 AHB1LPENR;     /* AHB1低电压模式下外设时钟使能寄存器, offset: 0x50 */
     volatile  uint32 AHB2LPENR;     /* AHB2低电压模式下外设时钟使能寄存器, offset: 0x54 */

@@ -5,12 +5,12 @@
  * 0x4001 3C00 - 0x4001 3FFF, APB2
  *
  ************************************** 高乙超.2017.0111 ***/
-#ifndef STM32F407_EXIT_H
-#define STM32F407_EXIT_H
+#ifndef STM32F407_EXTI_H
+#define STM32F407_EXTI_H
 
 #include <types.h>
 
-struct exit_register_1bit {
+struct exti_register_1bit {
     uint32 tr0 : 1;
     uint32 tr1 : 1;
     uint32 tr2 : 1;
@@ -37,22 +37,22 @@ struct exit_register_1bit {
     uint32 r0 : 9;
 };
 
-union exit_register {
-    struct exit_register_1bit bits;
+union exti_register {
+    struct exti_register_1bit bits;
     uint32 all;
 };
 
 typedef struct exit_regs {
-    volatile union exit_register IMR;    /* EXTI中断使能寄存器, offset: 0x00 */
-    volatile union exit_register EMR;    /* EXTI事件使能寄存器, offset: 0x04 */
-    volatile union exit_register RTSR;   /* EXTI上升沿触发选择寄存器, offset: 0x08 */
-    volatile union exit_register FTSR;   /* EXTI下降沿触发选择寄存器, offset: 0x0C */
-    volatile union exit_register SWIER;  /* EXTI软件触发中断, offset: 0x10 */
-    volatile union exit_register PR;     /* EXTI Pending寄存器,写1清除, offset: 0x14 */
+    volatile union exti_register IMR;    /* EXTI中断使能寄存器, offset: 0x00 */
+    volatile union exti_register EMR;    /* EXTI事件使能寄存器, offset: 0x04 */
+    volatile union exti_register RTSR;   /* EXTI上升沿触发选择寄存器, offset: 0x08 */
+    volatile union exti_register FTSR;   /* EXTI下降沿触发选择寄存器, offset: 0x0C */
+    volatile union exti_register SWIER;  /* EXTI软件触发中断, offset: 0x10 */
+    volatile union exti_register PR;     /* EXTI Pending寄存器,写1清除, offset: 0x14 */
 } exit_regs_t;
 
-#define EXIT_BASE 0x40013C00
-#define EXIT ((exit_regs_t *) EXIT_BASE)
+#define EXTI_BASE 0x40013C00
+#define EXTI ((exit_regs_t *) EXTI_BASE)
 
-#endif // !STM32F407_EXIT_H
+#endif // !STM32F407_EXTI_H
 

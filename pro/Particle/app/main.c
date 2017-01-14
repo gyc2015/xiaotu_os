@@ -39,14 +39,14 @@ void init_key() {
     GPIOH->PUPDR.bits.pin15 = GPIO_Pull_No;
 }
 
-void init_exit() {
+void init_exti() {
     RCC->APB2ENR.bits.syscfg = 1;
     SYSCFG->EXTICR.bits.exit15 = Exti_PortSource_H;
-    EXIT->IMR.bits.tr15 = 1;
-    EXIT->EMR.bits.tr15 = 0;
+    EXTI->IMR.bits.tr15 = 1;
+    EXTI->EMR.bits.tr15 = 0;
 
-    EXIT->RTSR.bits.tr15 = 0;
-    EXIT->FTSR.bits.tr15 = 1;
+    EXTI->RTSR.bits.tr15 = 0;
+    EXTI->FTSR.bits.tr15 = 1;
 
     NVIC->IPR.bits.EXTI15_10 = 0x00;
     NVIC->ISER.bits.EXTI15_10 = 1;
@@ -57,7 +57,7 @@ void delay(int c) {
 }
 
 void EXTI15_10_IRQHandler(void) {
-    if (EXIT->PR.bits.tr15) {
+    if (EXTI->PR.bits.tr15) {
         delay(1000);
         if (!KEY) {
             times++;
@@ -83,20 +83,20 @@ void EXTI15_10_IRQHandler(void) {
         default:
             break;
         }
-        EXIT->PR.bits.tr15 = 1;
+        EXTI->PR.bits.tr15 = 1;
     }
 }
 
 int main(void) {
     init_led();
     init_key();
-    init_exit();
+    init_exti();
 
     GPIOI->ODR.bits.pin5 = 1;
     GPIOI->ODR.bits.pin6 = 1;
     GPIOI->ODR.bits.pin7 = 1;
     
     while(1) {
-
+        delay(100);
     }
 }

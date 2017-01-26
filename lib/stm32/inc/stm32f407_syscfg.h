@@ -23,25 +23,25 @@ enum syscfg_exti_port {
 };
 
 struct syscfg_exticr_bits {
-    uint32 exit0 : 4;
-    uint32 exit1 : 4;
-    uint32 exit2 : 4;
-    uint32 exit3 : 4;
+    uint32 exti0 : 4;
+    uint32 exti1 : 4;
+    uint32 exti2 : 4;
+    uint32 exti3 : 4;
     uint32 r0 : 16;
-    uint32 exit4 : 4;
-    uint32 exit5 : 4;
-    uint32 exit6 : 4;
-    uint32 exit7 : 4;
+    uint32 exti4 : 4;
+    uint32 exti5 : 4;
+    uint32 exti6 : 4;
+    uint32 exti7 : 4;
     uint32 r1 : 16;
-    uint32 exit8 : 4;
-    uint32 exit9 : 4;
-    uint32 exit10 : 4;
-    uint32 exit11 : 4;
+    uint32 exti8 : 4;
+    uint32 exti9 : 4;
+    uint32 exti10 : 4;
+    uint32 exti11 : 4;
     uint32 r2 : 16;
-    uint32 exit12 : 4;
-    uint32 exit13 : 4;
-    uint32 exit14 : 4;
-    uint32 exit15 : 4;
+    uint32 exti12 : 4;
+    uint32 exti13 : 4;
+    uint32 exti14 : 4;
+    uint32 exti15 : 4;
     uint32 r3 : 16;
 };
 

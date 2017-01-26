@@ -40,14 +40,16 @@ void init_key() {
 }
 
 void init_exti() {
+    // 配置GPIOH为EXTI15的信号源
     RCC->APB2ENR.bits.syscfg = 1;
-    SYSCFG->EXTICR.bits.exit15 = Exti_PortSource_H;
+    SYSCFG->EXTICR.bits.exti15 = Exti_PortSource_H;
+    // 开启外部中断关闭事件
     EXTI->IMR.bits.tr15 = 1;
     EXTI->EMR.bits.tr15 = 0;
-
+    // 下降沿触发
     EXTI->RTSR.bits.tr15 = 0;
     EXTI->FTSR.bits.tr15 = 1;
-
+    // 外部中断的优先级和使能
     NVIC->IPR.bits.EXTI15_10 = 0x00;
     NVIC->ISER.bits.EXTI15_10 = 1;
 }
@@ -63,25 +65,25 @@ void EXTI15_10_IRQHandler(void) {
             times++;
             if (times > 2)
                 times = 0;
-        }
-        switch (times) {
-        case 0:
-            LED_R = ON;
-            LED_G = OFF;
-            LED_B = OFF;
-            break;
-        case 1:
-            LED_R = OFF;
-            LED_G = ON;
-            LED_B = OFF;
-            break;
-        case 2:
-            LED_R = OFF;
-            LED_G = OFF;
-            LED_B = ON;
-            break;
-        default:
-            break;
+            switch (times) {
+            case 0:
+                LED_R = ON;
+                LED_G = OFF;
+                LED_B = OFF;
+                break;
+            case 1:
+                LED_R = OFF;
+                LED_G = ON;
+                LED_B = OFF;
+                break;
+            case 2:
+                LED_R = OFF;
+                LED_G = OFF;
+                LED_B = ON;
+                break;
+            default:
+                break;
+            }
         }
         EXTI->PR.bits.tr15 = 1;
     }

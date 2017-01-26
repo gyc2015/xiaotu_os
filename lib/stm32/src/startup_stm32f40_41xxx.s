@@ -80,7 +80,7 @@ __Vectors       DCD     __initial_sp               ; Top of Stack
                 DCD     SVC_Handler                ; SVCall Handler
                 DCD     DebugMon_Handler           ; Debug Monitor Handler
                 DCD     0                          ; Reserved
-                DCD     PendSV_Handler             ; PendSV Handler
+                DCD     XTOS_PendSV_Handler        ; PendSV中断服务，用于上下文切换
                 DCD     SysTick_Handler            ; SysTick Handler
 
                 ; External Interrupts
@@ -219,8 +219,8 @@ DebugMon_Handler\
                 EXPORT  DebugMon_Handler           [WEAK]
                 B       .
                 ENDP
-PendSV_Handler  PROC
-                EXPORT  PendSV_Handler             [WEAK]
+XTOS_PendSV_Handler  PROC
+                EXPORT  XTOS_PendSV_Handler             [WEAK]
                 B       .
                 ENDP
 SysTick_Handler PROC

@@ -5,16 +5,16 @@
 ;										gaoyichao_2016@126.com
 ;											gaoyichao.com
 ;
-;	本系统在实现过程中参考了μC/OS
+;	本系统在实现过程中参考了μC/OS，基本没怎么改
 ;
 ;********************************************************************************************************
 
 	EXTERN gp_xtos_cur_task
 	EXTERN gp_xtos_next_task
 
-	EXPORT XTOS_Start_ASM
-	EXPORT XTOS_Ctx_Sw
-	EXPORT XTOS_PendSV_Handler
+	EXPORT xtos_start
+	EXPORT xtos_context_switch
+	EXPORT xtos_pendsv_handler
 ;********************************************************************************************************
 
 SCB_ICSR	    EQU     0xE000ED04                              ; 中断控制和状态寄存器SCB->ICSR.
@@ -31,7 +31,7 @@ PENDSV_SET		EQU     0x10000000                              ; Value to trigger P
 
 ;********************************************************************************************************
 ;                                         启动操作系统
-;                                     void XTOS_Start_ASM(void)
+;                                     void xtos_start(void)
 ;
 ; 1. 配置PendSV的中断优先级
 ;
@@ -42,7 +42,7 @@ PENDSV_SET		EQU     0x10000000                              ; Value to trigger P
 ;
 ;********************************************************************************************************
 
-XTOS_Start_ASM
+xtos_start
     LDR     R0, =SCB_SHP14										; 设置PendSV的优先级
     LDR     R1, =PENDSV_PRI
     STRB    R1, [R0]
@@ -56,18 +56,18 @@ XTOS_Start_ASM
 
     CPSIE   I                                                   ; 开中断
 
-XTOS_Start_Hang
-    B       XTOS_Start_Hang                                     ; Should never get here
+xtos_start_hang
+    B       xtos_start_hang                                     ; Should never get here
 
 ;********************************************************************************************************
 ;                                        任务级上下文切换
-;                                     void XTOS_Ctx_Sw(void)
+;                                     void xtos_context_switch(void)
 ;
 ; 1. 触发PendSV中断, 仅此而已
 ;
 ;********************************************************************************************************
 
-XTOS_Ctx_Sw
+xtos_context_switch
     LDR     R0, =SCB_ICSR										; 触发PendSV,进行上下文切换
     LDR     R1, =PENDSV_SET
     STR     R1, [R0]
@@ -89,11 +89,11 @@ XTOS_Ctx_Sw
 ;
 ;********************************************************************************************************
 
-XTOS_PendSV_Handler
-Context_Switch_Save_Senario
+xtos_pendsv_handler
+context_switch_save_senario
 	CPSID	I											; 关中断
     MRS     R0, PSP                                     ; 获取当前PSP
-    CBZ     R0, Context_Switch_Load_Senario             ; 如果PSP为0，说明是首次调用，没有上文，直接恢复下文
+    CBZ     R0, context_switch_load_senario             ; 如果PSP为0，说明是首次调用，没有上文，直接恢复下文
 
 	TST 	R14, #0x10									; 根据EXC_RETURN的bit4, 判定是否开启了FPU
 	IT 		EQ											; 若开启了, 则保存S16-S31
@@ -106,7 +106,7 @@ Context_Switch_Save_Senario
     LDR     R1, [R1]
     STR     R0, [R1]                                    ; R0中记录了上文栈顶
 
-Context_Switch_Load_Senario
+context_switch_load_senario
 	LDR		R0, =gp_xtos_cur_task						; gp_xtos_cur_task = gp_xtos_next_task
 	LDR		R1, =gp_xtos_next_task
 	LDR		R2, [R1]

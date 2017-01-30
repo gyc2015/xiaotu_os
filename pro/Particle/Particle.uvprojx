@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\lib\stm32\inc;..\..\lib\cmsis\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\lib\stm32\inc;..\..\lib\cmsis\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -431,6 +431,21 @@
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\lib\stm32\src\system_stm32f4xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>xtos</GroupName>
+          <Files>
+            <File>
+              <FileName>xtos.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\xtos\xtos.c</FilePath>
+            </File>
+            <File>
+              <FileName>xtos_asm.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\xtos\xtos_asm.s</FilePath>
             </File>
           </Files>
         </Group>

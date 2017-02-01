@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\lib\stm32\inc;..\..\lib\cmsis\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -446,6 +446,21 @@
               <FileName>xtos_asm.s</FileName>
               <FileType>2</FileType>
               <FilePath>..\..\xtos\xtos_asm.s</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>driver</GroupName>
+          <Files>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\usart4.c</FilePath>
             </File>
           </Files>
         </Group>

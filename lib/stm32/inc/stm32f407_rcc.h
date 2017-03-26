@@ -191,7 +191,7 @@ union rcc_apb1r {
     uint32 all;
 };
 /*
- * AHB1外设时钟使能寄存器 RCC_AHB2ENR
+ * AHB1外设时钟使能寄存器 RCC_APB2R
  * 偏移地址: 0x44
  * 复位值: 0x0000 0000
  * 访问: 没有等待状态, word/half-word/byte访问

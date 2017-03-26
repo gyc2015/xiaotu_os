@@ -432,6 +432,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\lib\stm32\src\system_stm32f4xx.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f407_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\stm32\src\stm32f407_dma.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

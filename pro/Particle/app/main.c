@@ -4,6 +4,7 @@
 #include <uart4.h>
 #include <iwdg.h>
 #include <wwdg.h>
+#include <sdio.h>
 #include <stm32f407_dma.h>
 
 #define KEY (GPIOH->IDR.bits.pin15)
@@ -30,6 +31,8 @@ void taska() {
         LED_R = LED_ON;
         LED_G = LED_OFF;
         LED_B = LED_OFF;
+        wwdg_feed();
+        //uart4_send_byte('A');
     }
 }
 
@@ -38,9 +41,9 @@ void taskb() {
         LED_R = LED_OFF;
         LED_G = LED_ON;
         LED_B = LED_OFF;
-
         //iwdg_feed();
         wwdg_feed();
+        //uart4_send_byte('B');
     }
 }
 
@@ -69,6 +72,7 @@ void SysTick_Handler(void) {
 int main(void) {
     led_init();
     systick_init(168000);
+    uart4_init(460800);
 
     LED_R = LED_OFF;
     LED_G = LED_OFF;
@@ -79,7 +83,11 @@ int main(void) {
                 ;
 
     //iwdg_init(IWDG_PR_DIV_16, 0xfff);
-    wwdg_init(WWDG_DIV8, 0x7F, 0x7E);
+    wwdg_init(WWDG_DIV8, 100, 127);
+
+    uart4_send_byte('G');
+    uart4_send_byte('Y');
+    uart4_send_byte('C');
 
     xtos_create_task(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1]);
     xtos_create_task(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1]);

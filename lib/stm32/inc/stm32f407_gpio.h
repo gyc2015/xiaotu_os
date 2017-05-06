@@ -14,11 +14,6 @@
  * 复位值: 0xA800 0000(GPIOA), 0x0000 0280(GPIOB), 0x0000 0000(其它)
  * 访问: word/half-word/byte访问
  */
-#define GPIO_Mode_In 0x00
-#define GPIO_Mode_Out 0x01
-#define GPIO_Mode_Af 0x02
-#define GPIO_Mode_Analog 0x03
-#define Gen_Gpio_Pin_Mode(pin, mode) ((mode) << 2 * (pin))
 struct gpio_moder_bits {
     uint32 pin0 : 2;
     uint32 pin1 : 2;
@@ -50,8 +45,6 @@ union gpio_moder {
  * 复位值: 0x0000 0000
  * 访问: word/half-word/byte访问
  */
-#define GPIO_OType_PP 0
-#define GPIO_OType_OD 1
 struct gpio_otyper_bits {
     uint32 pin0 : 1;
     uint32 pin1 : 1;
@@ -85,11 +78,6 @@ union gpio_otyper {
  * 复位值: 0x0C00 0000(GPIOA), 0x0000 00C0(GPIOB), 0x0000 0000(其它)
  * 访问: word/half-word/byte访问
  */
-#define GPIO_OSpeed_Low 0x00
-#define GPIO_OSpeed_Medium 0x01
-#define GPIO_OSpeed_High 0x02
-#define GPIO_OSpeed_Very_High 0x03
-#define Gen_Gpio_Pin_OSpeed(pin, speed) ((speed) << 2 * (pin))
 struct gpio_ospeedr_bits {
     uint32 pin0 : 2;
     uint32 pin1 : 2;
@@ -121,10 +109,6 @@ union gpio_ospeedr {
  * 复位值: 0x6400 0000(GPIOA), 0x0000 0100(GPIOB), 0x0000 0000(其它)
  * 访问: word/half-word/byte访问
  */
-#define GPIO_Pull_No 0x00
-#define GPIO_Pull_Up 0x01
-#define GPIO_Pull_Down 0x02
-#define Gen_Gpio_Pin_PuPd(pin, pupd) ((pupd) << 2 * (pin))
 struct gpio_pupdr_bits {
     uint32 pin0 : 2;
     uint32 pin1 : 2;
@@ -385,6 +369,55 @@ typedef struct gpio_regs {
 #define GPIOH ((gpio_regs_t *) GPIOH_BASE)
 #define GPIOI ((gpio_regs_t *) GPIOI_BASE)
 
+/****************************************************************************************/
 
+#define GPIO_Mode_In 0x00
+#define GPIO_Mode_Out 0x01
+#define GPIO_Mode_Af 0x02
+#define GPIO_Mode_Analog 0x03
+
+#define GPIO_OType_PP 0
+#define GPIO_OType_OD 1
+
+#define GPIO_OSpeed_Low 0x00
+#define GPIO_OSpeed_Medium 0x01
+#define GPIO_OSpeed_High 0x02
+#define GPIO_OSpeed_Very_High 0x03
+
+#define GPIO_Pull_No 0x00
+#define GPIO_Pull_Up 0x01
+#define GPIO_Pull_Down 0x02
+
+#define Gen_Gpio_Pin_Mode(id, mode) ((uint32)((mode) << 2 * (id)))
+#define Gen_Gpio_Pin_OType(id, otype) ((uint32)((otype) << (id)))
+#define Gen_Gpio_Pin_OSpeed(id, speed) ((uint32)((speed) << 2 * (id)))
+#define Gen_Gpio_Pin_PuPd(id, pupd) ((uint32)((pupd) << 2 * (id)))
+
+#define GPIO_Pin_0  ((uint16)0x0001)  /* Pin 0 selected */
+#define GPIO_Pin_1  ((uint16)0x0002)  /* Pin 1 selected */
+#define GPIO_Pin_2  ((uint16)0x0004)  /* Pin 2 selected */
+#define GPIO_Pin_3  ((uint16)0x0008)  /* Pin 3 selected */
+#define GPIO_Pin_4  ((uint16)0x0010)  /* Pin 4 selected */
+#define GPIO_Pin_5  ((uint16)0x0020)  /* Pin 5 selected */
+#define GPIO_Pin_6  ((uint16)0x0040)  /* Pin 6 selected */
+#define GPIO_Pin_7  ((uint16)0x0080)  /* Pin 7 selected */
+#define GPIO_Pin_8  ((uint16)0x0100)  /* Pin 8 selected */
+#define GPIO_Pin_9  ((uint16)0x0200)  /* Pin 9 selected */
+#define GPIO_Pin_10 ((uint16)0x0400)  /* Pin 10 selected */
+#define GPIO_Pin_11 ((uint16)0x0800)  /* Pin 11 selected */
+#define GPIO_Pin_12 ((uint16)0x1000)  /* Pin 12 selected */
+#define GPIO_Pin_13 ((uint16)0x2000)  /* Pin 13 selected */
+#define GPIO_Pin_14 ((uint16)0x4000)  /* Pin 14 selected */
+#define GPIO_Pin_15 ((uint16)0x8000)  /* Pin 15 selected */
+#define GPIO_Pin_All ((uint16)0xFFFF)  /* All pins selected */
+
+struct gpio_pin_conf {
+    uint8 mode;
+    uint8 speed;
+    uint8 otype;
+    uint8 pull;
+};
+
+void gpio_init(gpio_regs_t *GPIOx, const uint16 pins, const struct gpio_pin_conf *conf);
 
 #endif

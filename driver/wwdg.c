@@ -23,6 +23,7 @@ void wwdg_init(uint8 div, uint8 w, uint8 s) {
 }
 
 void wwdg_feed(void) {
-    WWDG->CR.bits.T = _start_value;
+    if (WWDG->CR.bits.T < WWDG->CFR.bits.W)
+        WWDG->CR.bits.T = _start_value;
 }
 

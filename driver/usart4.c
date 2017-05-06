@@ -6,18 +6,24 @@
  */
 static void uart4_init_gpio(void) {
     RCC->AHB1ENR.bits.gpioa = 1;
-    // PA0 : tx
-    GPIOA->MODER.bits.pin0 = GPIO_Mode_Af;
-    GPIOA->OTYPER.bits.pin0 = GPIO_OType_PP;
-    GPIOA->PUPDR.bits.pin0 = GPIO_Pull_Up;
-    GPIOA->OSPEEDR.bits.pin0 = GPIO_OSpeed_High;
-    // PA1 : rx
-    GPIOA->MODER.bits.pin1 = GPIO_Mode_Af;
-    GPIOA->PUPDR.bits.pin1 = GPIO_Pull_No;
-    GPIOA->OSPEEDR.bits.pin1 = GPIO_OSpeed_High;
+    struct gpio_pin_conf pincof, pincof1;
     // 功能选择
+    // remark: 对于引脚的功能选择应当放在具体的配置之前
+    // 否则初始化后，会通过串口发送一个0xFF的数到上位机
     GPIOA->AFR.bits.pin0 = 0x08;
     GPIOA->AFR.bits.pin1 = 0x08;
+    // PA0 : tx
+    pincof.mode = GPIO_Mode_Af;
+    pincof.otype = GPIO_OType_PP;
+    pincof.pull = GPIO_Pull_Up;
+    pincof.speed = GPIO_OSpeed_High;
+    gpio_init(GPIOA, GPIO_Pin_0, &pincof);
+
+    // PA1 : rx
+    pincof1.mode = GPIO_Mode_Af;
+    pincof1.pull = GPIO_Pull_No;
+    pincof1.otype = GPIO_OType_OD;
+    gpio_init(GPIOA, GPIO_Pin_1, &pincof1);
 }
 /*
  * uart4_init - 初始化串口

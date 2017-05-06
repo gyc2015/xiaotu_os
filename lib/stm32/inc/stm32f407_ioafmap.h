@@ -11,4 +11,7 @@
 #define GPIO_AF1_TIM1    0x01
 #define GPIO_AF1_TIM2    0x01
 
+#define GPIO_AF_SDIO 0x0C
+
+
 #endif // !STM32F407_IOIAFMAP

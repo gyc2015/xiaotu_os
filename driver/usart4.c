@@ -54,9 +54,24 @@ void uart4_init(uint32 baudrate) {
     UART4->CR1.bits.UE = 1;     // ¿ªÆô´®¿Ú
 }
 
-uint8 uart4_send_byte(uint8 value) {
+void uart4_send_byte(uint8 value) {
     UART4->DR.bits.byte = value;
     while (!UART4->SR.bits.TXE);
-    return 0;
 }
+
+void uart4_send_bytes(const uint8 *buf, uint32 len) {
+    for (uint32 i = 0; i < len; i++) {
+        UART4->DR.bits.byte = buf[i];
+        while (!UART4->SR.bits.TXE);
+    }
+}
+
+void uart4_send_str(const uint8 *str) {
+    while ('\0' != str[0]) {
+        UART4->DR.bits.byte = str[0];
+        while (!UART4->SR.bits.TXE);
+        str++;
+    }
+}
+
 

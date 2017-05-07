@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -442,6 +442,31 @@
               <FileType>1</FileType>
               <FilePath>..\..\lib\stm32\src\stm32f407_gpio.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f407_sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\stm32\src\stm32f407_sdio.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>libcmsis</GroupName>
+          <Files>
+            <File>
+              <FileName>cortex_m4_nvic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\cmsis\src\cortex_m4_nvic.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>libutils</GroupName>
+          <Files>
+            <File>
+              <FileName>utils.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\utils\src\utils.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -481,6 +506,11 @@
               <FileName>wwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\wwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\sdio.c</FilePath>
             </File>
           </Files>
         </Group>

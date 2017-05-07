@@ -31,8 +31,6 @@ void taska() {
         LED_R = LED_ON;
         LED_G = LED_OFF;
         LED_B = LED_OFF;
-        wwdg_feed();
-        //uart4_send_byte('A');
     }
 }
 
@@ -41,9 +39,6 @@ void taskb() {
         LED_R = LED_OFF;
         LED_G = LED_ON;
         LED_B = LED_OFF;
-        //iwdg_feed();
-        wwdg_feed();
-        //uart4_send_byte('B');
     }
 }
 
@@ -68,26 +63,21 @@ void SysTick_Handler(void) {
     }
 }
 
-
+uint32 sdsize = 0;
 int main(void) {
+    struct sd_card card;
+
     led_init();
     systick_init(168000);
-    uart4_init(460800);
+    uart4_init(921600);
+    sdio_init(&card);
+    sdsize = card.capacity >> 20;
 
     LED_R = LED_OFF;
     LED_G = LED_OFF;
     LED_B = LED_ON;
 
-    for (int i = 0; i < 5000; i++)
-        for (int j = 0; j < 1000; j++)
-                ;
-
-    //iwdg_init(IWDG_PR_DIV_16, 0xfff);
-    wwdg_init(WWDG_DIV8, 100, 127);
-
-    uart4_send_byte('G');
-    uart4_send_byte('Y');
-    uart4_send_byte('C');
+    uart4_send_str("G.Y.C");
 
     xtos_create_task(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1]);
     xtos_create_task(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1]);

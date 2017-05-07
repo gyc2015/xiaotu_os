@@ -93,6 +93,28 @@ union sdio_dlen {
     uint32 all;
 };
 
+#define SDIO_DataBlockSize_1b               0
+#define SDIO_DataBlockSize_2b               1
+#define SDIO_DataBlockSize_4b               2
+#define SDIO_DataBlockSize_8b               3
+#define SDIO_DataBlockSize_16b              4
+#define SDIO_DataBlockSize_32b              5
+#define SDIO_DataBlockSize_64b              6
+#define SDIO_DataBlockSize_128b             7
+#define SDIO_DataBlockSize_256b             8
+#define SDIO_DataBlockSize_512b             9
+#define SDIO_DataBlockSize_1024b            10
+#define SDIO_DataBlockSize_2048b            11
+#define SDIO_DataBlockSize_4096b            12
+#define SDIO_DataBlockSize_8192b            13
+#define SDIO_DataBlockSize_16384b           14
+
+#define SDIO_TransDir_ToCard 0
+#define SDIO_TransDir_ToSdio 1
+
+#define SDIO_TransMode_Block 0
+#define SDIO_TransMode_Stream 1
+
 struct sdio_dctrl_bits {
     uint32 DTEN : 1;
     uint32 DTDIR : 1;
@@ -121,31 +143,56 @@ union sdio_dcount {
     uint32 all;
 };
 
+#define SDIO_FLAG_CCRCFAIL      ((uint32)0x00000001)
+#define SDIO_FLAG_DCRCFAIL      ((uint32)0x00000002)
+#define SDIO_FLAG_CTIMEOUT      ((uint32)0x00000004)
+#define SDIO_FLAG_DTIMEOUT      ((uint32)0x00000008)
+#define SDIO_FLAG_TXUNDERR      ((uint32)0x00000010)
+#define SDIO_FLAG_RXOVERR       ((uint32)0x00000020)
+#define SDIO_FLAG_CMDREND       ((uint32)0x00000040)
+#define SDIO_FLAG_CMDSENT       ((uint32)0x00000080)
+#define SDIO_FLAG_DATAEND       ((uint32)0x00000100)
+#define SDIO_FLAG_STBITERR      ((uint32)0x00000200)
+#define SDIO_FLAG_DBCKEND       ((uint32)0x00000400)
+#define SDIO_FLAG_CMDACT        ((uint32)0x00000800)
+#define SDIO_FLAG_TXACT         ((uint32)0x00001000)
+#define SDIO_FLAG_RXACT         ((uint32)0x00002000)
+#define SDIO_FLAG_TXFIFOHE      ((uint32)0x00004000)
+#define SDIO_FLAG_RXFIFOHF      ((uint32)0x00008000)
+#define SDIO_FLAG_TXFIFOF       ((uint32)0x00010000)
+#define SDIO_FLAG_RXFIFOF       ((uint32)0x00020000)
+#define SDIO_FLAG_TXFIFOE       ((uint32)0x00040000)
+#define SDIO_FLAG_RXFIFOE       ((uint32)0x00080000)
+#define SDIO_FLAG_TXDAVL        ((uint32)0x00100000)
+#define SDIO_FLAG_RXDAVL        ((uint32)0x00200000)
+#define SDIO_FLAG_SDIOIT        ((uint32)0x00400000)
+#define SDIO_FLAG_CEATAEND      ((uint32)0x00800000)
+
 struct sdio_sta_bits {
-    uint32 ccrcfail : 1;
-    uint32 dcrcfail : 1;
-    uint32 ctimeout : 1;
-    uint32 dtimeout : 1;
-    uint32 txunderr : 1;
-    uint32 rxoverr : 1;
-    uint32 cmdrend : 1;
-    uint32 cmdsent : 1;
-    uint32 dataend : 1;
-    uint32 stbiterr : 1;
-    uint32 dbckend : 1;
-    uint32 cmdact : 1;
-    uint32 txact : 1;
-    uint32 rxact : 1;
-    uint32 txfifohe : 1;
-    uint32 rxfifohf : 1;
-    uint32 txfifof : 1;
-    uint32 rxfifof : 1;
-    uint32 txfifoe : 1;
-    uint32 rxfifoe : 1;
-    uint32 txdavl : 1;
-    uint32 rxdavl : 1;
-    uint32 sdioit : 1;
-    uint32 ceataend : 1;
+    uint32 ccrcfail : 1;        /* 接收到指令响应，但CRC校验错误 */
+    uint32 dcrcfail : 1;        /* 数据块发送/接收了，但CRC校验错误 */
+    uint32 ctimeout : 1;        /* 指令响应超时 */
+    uint32 dtimeout : 1;        /* 数据超时 */
+    uint32 txunderr : 1;        /* Tx溢出 FIFO underrun错误 */
+    uint32 rxoverr : 1;         /* Rx溢出 FIFO overrun错误 */
+    uint32 cmdrend : 1;         /* 接收到指令响应，CRC校验通过 */
+    uint32 cmdsent : 1;         /* 指令已经发送，但不需要接收响应 */
+    uint32 dataend : 1;         /* Data end，数据计数器SDIDCOUNT为0 */
+    uint32 stbiterr : 1;        /* 没有检测到起始位 */
+    uint32 dbckend : 1;         /* 数据块发送/接收了，CRC校验通过 */
+    uint32 cmdact : 1;          /* Command transfer in progress */
+    uint32 txact : 1;           /* data transfer in progress */
+    uint32 rxact : 1;           /* data receive in progress */
+    uint32 txfifohe : 1;        /* 发送FIFO半空(half empty)，至少可以写入8个Word到FIFO中 */
+    uint32 rxfifohf : 1;        /* 接收FIFO半满(half full)，至少有8个Word存在FIFO中 */
+    uint32 txfifof : 1;         /* 发送FIFO满 */
+    uint32 rxfifof : 1;         /* 接收FIFO满 */
+    uint32 txfifoe : 1;         /* 发送FIFO空 */
+    uint32 rxfifoe : 1;         /* 接收FIFO空 */
+    uint32 txdavl : 1;          /* Data Available in transmit FIFO */
+    uint32 rxdavl : 1;          /* Data Available in receive FIFO */
+    uint32 sdioit : 1;          /* SDIO中断 */
+    uint32 ceataend : 1;        /* CE-ATA command completion signal received for CMD61 */
     uint32 rsv : 8;
 };
 
@@ -204,5 +251,10 @@ typedef struct sdio_regs {
 #define SDIO_BASE 0x40012C00
 /* SDIO寄存器指针访问 */
 #define SDIO ((sdio_regs_t *) SDIO_BASE)
+
+
+void sdio_send_cmd(union sdio_cmd cmd, uint32 arg);
+void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen);
+
 
 #endif // !STM32F407_SDIO_H

@@ -1,4 +1,10 @@
 #include <cortex_m4_nvic.h>
+#include <cortex_m4_scb.h>
+
+void NVIC_SetPriorityGroup(uint32 group) {
+    SCB->AIRCR = SCB_AIRCR_KEY_VALUE | group;
+}
+
 //
 //void NVIC_EnableIRQ(IRQn_Type IRQn) {}
 //

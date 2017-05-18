@@ -51,6 +51,7 @@ void uart4_init(uint32 baudrate) {
     UART4->BRR.bits.mantissa = mantissa;
     UART4->BRR.bits.fraction = fraction;
 
+    UART4->CR1.bits.RXNEIE = 1; // 开启接收中断
     UART4->CR1.bits.UE = 1;     // 开启串口
 }
 
@@ -74,4 +75,10 @@ void uart4_send_str(const uint8 *str) {
     }
 }
 
+void UART4_IRQHandler(void) {
+    if (0 != UART4->SR.bits.RXNE) {
+        uint8 data = UART4->DR.bits.byte;
+        uart4_send_byte(data);
+    }
+}
 

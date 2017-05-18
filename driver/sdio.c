@@ -30,21 +30,6 @@ static void sdio_init_hw(void) {
     pincof.pull = GPIO_Pull_No;
     gpio_init(GPIOC, GPIO_Pin_12, &pincof);
 }
-/*
- * sdio_init_clkcr - 初始化时钟控制寄存器
- *
- * 在STM32F407中，SDIO的驱动时钟SDIOCLK频率为48MHz，由PLL直接驱动。
- * 正常情况下，输出的SDIO_CK频率不能超过400KHz
- * SDIO_CK = SDIOCLK / (CLKDIV + 2)
- */
-static void sdio_init_clkcr(uint8 clkdiv, uint8 buswid) {
-    SDIO->CLKCR.bits.CLKDIV = clkdiv;
-    SDIO->CLKCR.bits.NEGEDGE = FALSE;
-    SDIO->CLKCR.bits.BYPASS = FALSE;
-    SDIO->CLKCR.bits.PWRSAV = FALSE;
-    SDIO->CLKCR.bits.WIDBUS = buswid;
-    SDIO->CLKCR.bits.HWFC_EN = FALSE;
-}
 
 static enum SD_Error sdio_check_cmd0(void) {
     enum SD_Error e = SDE_ERROR;
@@ -565,6 +550,49 @@ enum SD_Error sdio_init(struct sd_card *card) {
         return e;
 
     return sdio_en_widemode(card->rca);
+}
+/*
+ * sdio_read_block - 读一个block的数据,通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @addr: 需要读取block地址
+ * @buf: 缓存地址
+ */
+enum SD_Error sdio_read_block(struct sd_card *card, uint32 addr, uint8 *buf) {
+    SDIO->DCTRL.all = 0;
+
+    uint16 blocksize = card->blocksize;
+    uint32 blocknum = addr / blocksize;
+
+    enum SD_Error e = SDE_OK;
+    union sdio_cmd cmd;
+    union sdio_dctrl dctrl;
+
+    // 设置Block大小
+    cmd.all = 0;
+    cmd.bits.CMDINDEX = SD_CMD_SET_BLOCKLEN;
+    cmd.bits.WAITRESP = SDIO_Response_Short;
+    cmd.bits.CPSMEN = 1;
+    sdio_send_cmd(cmd, blocksize);
+    e = sdio_check_resp1(SD_CMD_SET_BLOCKLEN);
+    if (SDE_OK != e)
+        return e;
+    // 设置数据
+    dctrl.all = SDIO->DCTRL.all;
+    dctrl.bits.DBLOCKSIZE = SDIO_DataBlockSize_512b;
+    dctrl.bits.DTDIR = SDIO_TransDir_ToSdio;
+    dctrl.bits.DTMODE = SDIO_TransMode_Block;
+    dctrl.bits.DTEN = 1;
+    sdio_config_data(dctrl, SD_DATATIMEOUT, blocksize);
+    // CMD17
+    cmd.all = 0;
+    cmd.bits.CMDINDEX = SD_CMD_READ_SINGLE_BLOCK;
+    cmd.bits.WAITRESP = SDIO_Response_Short;
+    cmd.bits.CPSMEN = 1;
+    sdio_send_cmd(cmd, blocksize);
+    e = sdio_check_resp1(SD_CMD_READ_SINGLE_BLOCK);
+    if (SDE_OK != e)
+        return e;
 }
 
 

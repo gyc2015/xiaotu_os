@@ -14,6 +14,12 @@
 
 #include <types.h>
 
+#define NVIC_PGroup_0           ((uint32)0x700) /*!< 0 bits for pre-emption priority 4 bits for subpriority */
+#define NVIC_PGroup_1           ((uint32)0x600) /*!< 1 bits for pre-emption priority 3 bits for subpriority */
+#define NVIC_PGroup_2           ((uint32)0x500) /*!< 2 bits for pre-emption priority 2 bits for subpriority */
+#define NVIC_PGroup_3           ((uint32)0x400) /*!< 3 bits for pre-emption priority 1 bits for subpriority */
+#define NVIC_PGroup_4           ((uint32)0x300) /*!< 4 bits for pre-emption priority 0 bits for subpriority */
+
 /*
  * vector_table_1bit - 向量表的位定义,3个32bit
  */
@@ -272,9 +278,6 @@ typedef struct nvic_regs {
 #define NVIC ((nvic_regs_t *) NVIC_BASE)
 
 
-
-
-
-
+void NVIC_SetPriorityGroup(uint32 group);
 
 #endif

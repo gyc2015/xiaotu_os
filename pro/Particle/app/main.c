@@ -63,6 +63,9 @@ void SysTick_Handler(void) {
     }
 }
 
+
+void config_interruts(void);
+
 uint32 sdsize = 0;
 int main(void) {
     struct sd_card card;
@@ -71,6 +74,9 @@ int main(void) {
     systick_init(168000);
     uart4_init(921600);
     sdio_init(&card);
+
+    config_interruts();
+
     sdsize = card.capacity >> 20;
 
     LED_R = LED_OFF;

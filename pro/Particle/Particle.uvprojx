@@ -417,6 +417,11 @@
               <FileType>1</FileType>
               <FilePath>.\app\main.c</FilePath>
             </File>
+            <File>
+              <FileName>interrupts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\app\interrupts.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

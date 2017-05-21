@@ -3,6 +3,7 @@
 #include <stm32f407_gpio.h>
 
 #include <utils.h>
+#include <uart4.h>
 
 static void sdio_init_hw(void) {
     struct gpio_pin_conf pincof;
@@ -549,7 +550,14 @@ enum SD_Error sdio_init(struct sd_card *card) {
     if (SDE_OK != e)
         return e;
 
-    return sdio_en_widemode(card->rca);
+    e = sdio_en_widemode(card->rca);
+
+    SDIO->MASK.bits.dcrcfaile = 1;
+    SDIO->MASK.bits.dtimeoute = 1;
+    SDIO->MASK.bits.dataende = 1;
+    SDIO->MASK.bits.rxoverre = 1;
+    SDIO->MASK.bits.stbiterre = 1;
+    return e;
 }
 /*
  * sdio_read_block - 读一个block的数据,通过DMA实现
@@ -589,10 +597,14 @@ enum SD_Error sdio_read_block(struct sd_card *card, uint32 addr, uint8 *buf) {
     cmd.bits.CMDINDEX = SD_CMD_READ_SINGLE_BLOCK;
     cmd.bits.WAITRESP = SDIO_Response_Short;
     cmd.bits.CPSMEN = 1;
-    sdio_send_cmd(cmd, blocksize);
+    sdio_send_cmd(cmd, blocknum);
     e = sdio_check_resp1(SD_CMD_READ_SINGLE_BLOCK);
     if (SDE_OK != e)
         return e;
+
+    SDIO->DCTRL.bits.DMAEN = 1;
+    sdio_config_dma((uint32 *)buf, blocksize);
+    return e;
 }
 
 

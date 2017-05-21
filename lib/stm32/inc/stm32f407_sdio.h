@@ -224,6 +224,39 @@ union sdio_icr {
     uint32 all;
 };
 
+struct sdio_mask_bits {
+    uint32 ccrcfaile : 1;
+    uint32 dcrcfaile : 1;
+    uint32 ctimeoute : 1;
+    uint32 dtimeoute : 1;
+    uint32 txunderre : 1;
+    uint32 rxoverre : 1;
+    uint32 cmdrende : 1;
+    uint32 cmdsente : 1;
+    uint32 dataende : 1;
+    uint32 stbiterre : 1;
+    uint32 dbckende : 1;
+    uint32 cmdactie : 1;
+    uint32 txactie : 1;
+    uint32 rxactie : 1;
+    uint32 txfifoheie : 1;
+    uint32 rxfifohfie : 1;
+    uint32 txfifofie : 1;
+    uint32 rxfifofie : 1;
+    uint32 txfifoeie : 1;
+    uint32 rxfifoeie : 1;
+    uint32 txdavlie : 1;
+    uint32 rxdavlie : 1;
+    uint32 sdioite : 1;
+    uint32 ceataende : 1;
+    uint32 rsv2 : 8;
+};
+
+union sdio_mask {
+    struct sdio_mask_bits bits;
+    uint32 all;
+};
+
 typedef struct sdio_regs {
     volatile union sdio_power POWER;        /* SDIOµçÁ¦¿ØÖÆ¼Ä´æÆ÷, offset: 0x00 */
     volatile union sdio_clkcr CLKCR;        /* SDIOÊ±ÖÓ¿ØÖÆ¼Ä´æÆ÷, offset: 0x04 */
@@ -240,7 +273,7 @@ typedef struct sdio_regs {
     volatile union sdio_dcount DCOUNT;      /* SDIOÊý¾Ý¼ÆÊý¼Ä´æÆ÷, offset: 0x30 */
     volatile union sdio_sta STA;            /* SDIO×´Ì¬¼Ä´æÆ÷, offset: 0x34 */
     volatile union sdio_icr ICR;            /* SDIOÇå³ýÖÐ¶Ï¼Ä´æÆ÷, offset: 0x38 */
-    volatile uint32 MASK;           /* SDIO mask register,             Address offset: 0x3C */
+    volatile union sdio_mask MASK;          /* SDIOÖÐ¶ÏMaskÊ¹ÄÜ¼Ä´æÆ÷, offset: 0x3C */
     uint32 RESERVED0[2];            /* Reserved, 0x40-0x44                                  */
     volatile uint32  FIFOCNT;       /* SDIO FIFO counter register,     Address offset: 0x48 */
     uint32 RESERVED1[13];           /* Reserved, 0x4C-0x7C                                  */
@@ -256,5 +289,6 @@ typedef struct sdio_regs {
 void sdio_send_cmd(union sdio_cmd cmd, uint32 arg);
 void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen);
 void sdio_init_clkcr(uint8 clkdiv, uint8 buswid);
+void sdio_config_dma(uint32 *dbuf, uint32 bufsize);
 
 #endif // !STM32F407_SDIO_H

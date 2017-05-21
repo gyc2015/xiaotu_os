@@ -257,6 +257,7 @@ struct sd_card {
 };
 
 enum SD_Error sdio_init(struct sd_card *card);
+enum SD_Error sdio_read_block(struct sd_card *card, uint32 addr, uint8 *buf);
 
 #endif
 

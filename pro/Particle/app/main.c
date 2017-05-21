@@ -63,10 +63,35 @@ void SysTick_Handler(void) {
     }
 }
 
+void SDIO_IRQHandler(void) {
+    if (SDIO->STA.bits.dataend) {
+        SDIO->ICR.bits.dataendc = 1;
+        uart4_send_byte('g');
+    } else if (SDIO->STA.bits.dcrcfail) {
+        uart4_send_byte('a');
+        SDIO->ICR.bits.dcrcfailc = 1;
+    } else if (SDIO->STA.bits.dtimeout) {
+        uart4_send_byte('b');
+        SDIO->ICR.bits.dtimeoutc = 1;
+    } else if (SDIO->STA.bits.rxoverr) {
+        uart4_send_byte('c');
+        SDIO->ICR.bits.rxoverrc = 1;
+    } else if (SDIO->STA.bits.stbiterr) {
+        uart4_send_byte('d');
+        SDIO->ICR.bits.stbiterrc = 1;
+    }
+}
+
+void DMA2_Stream3_IRQHandler(void) {
+    if (1 == DMA2->LISR.bits.TCIF3) {
+        DMA2->LIFCR.bits.TCIF3 = 1;
+        uart4_send_byte('y');
+    }
+}
 
 void config_interruts(void);
+uint8 sdiobuf[512];
 
-uint32 sdsize = 0;
 int main(void) {
     struct sd_card card;
 
@@ -77,13 +102,13 @@ int main(void) {
 
     config_interruts();
 
-    sdsize = card.capacity >> 20;
-
     LED_R = LED_OFF;
     LED_G = LED_OFF;
     LED_B = LED_ON;
 
     uart4_send_str("G.Y.C");
+
+    sdio_read_block(&card, 0, sdiobuf);
 
     xtos_create_task(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1]);
     xtos_create_task(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1]);
@@ -92,6 +117,7 @@ int main(void) {
 
     SYSTICK->CTRL.bits.en = 1;
     xtos_start();
+
 
     while(1) {}
 }

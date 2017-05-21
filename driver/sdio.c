@@ -1,6 +1,7 @@
 #include <sdio.h>
 #include <stm32f407_rcc.h>
 #include <stm32f407_gpio.h>
+#include <stm32f407_dma.h>
 
 #include <utils.h>
 #include <uart4.h>
@@ -552,25 +553,19 @@ enum SD_Error sdio_init(struct sd_card *card) {
 
     e = sdio_en_widemode(card->rca);
 
-    SDIO->MASK.bits.dcrcfaile = 1;
-    SDIO->MASK.bits.dtimeoute = 1;
-    SDIO->MASK.bits.dataende = 1;
-    SDIO->MASK.bits.rxoverre = 1;
-    SDIO->MASK.bits.stbiterre = 1;
     return e;
 }
 /*
  * sdio_read_block - 读一个block的数据,通过DMA实现
  *
  * @card: 目标SD卡
- * @addr: 需要读取block地址
+ * @bnum: 需要读取block地址
  * @buf: 缓存地址
  */
-enum SD_Error sdio_read_block(struct sd_card *card, uint32 addr, uint8 *buf) {
+enum SD_Error sdio_read_block(const struct sd_card *card, uint32 bnum, uint8 *buf) {
     SDIO->DCTRL.all = 0;
 
     uint16 blocksize = card->blocksize;
-    uint32 blocknum = addr / blocksize;
 
     enum SD_Error e = SDE_OK;
     union sdio_cmd cmd;
@@ -597,14 +592,84 @@ enum SD_Error sdio_read_block(struct sd_card *card, uint32 addr, uint8 *buf) {
     cmd.bits.CMDINDEX = SD_CMD_READ_SINGLE_BLOCK;
     cmd.bits.WAITRESP = SDIO_Response_Short;
     cmd.bits.CPSMEN = 1;
-    sdio_send_cmd(cmd, blocknum);
+    sdio_send_cmd(cmd, bnum);
     e = sdio_check_resp1(SD_CMD_READ_SINGLE_BLOCK);
     if (SDE_OK != e)
         return e;
 
+    sdio_enable_interrupts();
     SDIO->DCTRL.bits.DMAEN = 1;
-    sdio_config_dma((uint32 *)buf, blocksize);
+    sdio_config_dma_rx((uint32 *)buf, blocksize);
     return e;
 }
 
+enum SD_Error sdio_write_block(const struct sd_card *card, uint32 bnum, const uint8 *buf) {
+    SDIO->DCTRL.all = 0;
+
+    uint16 blocksize = card->blocksize;
+
+    enum SD_Error e = SDE_OK;
+    union sdio_cmd cmd;
+    union sdio_dctrl dctrl;
+
+    // 设置Block大小
+    cmd.all = 0;
+    cmd.bits.CMDINDEX = SD_CMD_SET_BLOCKLEN;
+    cmd.bits.WAITRESP = SDIO_Response_Short;
+    cmd.bits.CPSMEN = 1;
+    sdio_send_cmd(cmd, blocksize);
+    e = sdio_check_resp1(SD_CMD_SET_BLOCKLEN);
+    if (SDE_OK != e)
+        return e;
+    // CMD24
+    cmd.all = 0;
+    cmd.bits.CMDINDEX = SD_CMD_WRITE_SINGLE_BLOCK;
+    cmd.bits.WAITRESP = SDIO_Response_Short;
+    cmd.bits.CPSMEN = 1;
+    sdio_send_cmd(cmd, bnum);
+    e = sdio_check_resp1(SD_CMD_WRITE_SINGLE_BLOCK);
+    if (SDE_OK != e)
+        return e;
+    // 设置数据
+    dctrl.all = SDIO->DCTRL.all;
+    dctrl.bits.DBLOCKSIZE = SDIO_DataBlockSize_512b;
+    dctrl.bits.DTDIR = SDIO_TransDir_ToCard;
+    dctrl.bits.DTMODE = SDIO_TransMode_Block;
+    dctrl.bits.DTEN = 1;
+    sdio_config_data(dctrl, SD_DATATIMEOUT, blocksize);
+
+    sdio_enable_interrupts();
+    SDIO->DCTRL.bits.DMAEN = 1;
+    sdio_config_dma_tx((uint32 *)buf, blocksize);
+    return e;
+}
+
+
+void SDIO_IRQHandler(void) {
+    if (SDIO->STA.bits.dataend) {
+        SDIO->ICR.bits.dataendc = 1;
+        uart4_send_byte('g');
+    } else if (SDIO->STA.bits.dcrcfail) {
+        uart4_send_byte('a');
+        SDIO->ICR.bits.dcrcfailc = 1;
+    } else if (SDIO->STA.bits.dtimeout) {
+        uart4_send_byte('b');
+        SDIO->ICR.bits.dtimeoutc = 1;
+    } else if (SDIO->STA.bits.rxoverr) {
+        uart4_send_byte('c');
+        SDIO->ICR.bits.rxoverrc = 1;
+    } else if (SDIO->STA.bits.stbiterr) {
+        uart4_send_byte('d');
+        SDIO->ICR.bits.stbiterrc = 1;
+    }
+
+    sdio_disable_interrupts();
+}
+
+void DMA2_Stream3_IRQHandler(void) {
+    if (1 == DMA2->LISR.bits.TCIF3) {
+        DMA2->LIFCR.bits.TCIF3 = 1;
+        uart4_send_byte('y');
+    }
+}
 

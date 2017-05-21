@@ -63,34 +63,11 @@ void SysTick_Handler(void) {
     }
 }
 
-void SDIO_IRQHandler(void) {
-    if (SDIO->STA.bits.dataend) {
-        SDIO->ICR.bits.dataendc = 1;
-        uart4_send_byte('g');
-    } else if (SDIO->STA.bits.dcrcfail) {
-        uart4_send_byte('a');
-        SDIO->ICR.bits.dcrcfailc = 1;
-    } else if (SDIO->STA.bits.dtimeout) {
-        uart4_send_byte('b');
-        SDIO->ICR.bits.dtimeoutc = 1;
-    } else if (SDIO->STA.bits.rxoverr) {
-        uart4_send_byte('c');
-        SDIO->ICR.bits.rxoverrc = 1;
-    } else if (SDIO->STA.bits.stbiterr) {
-        uart4_send_byte('d');
-        SDIO->ICR.bits.stbiterrc = 1;
-    }
-}
-
-void DMA2_Stream3_IRQHandler(void) {
-    if (1 == DMA2->LISR.bits.TCIF3) {
-        DMA2->LIFCR.bits.TCIF3 = 1;
-        uart4_send_byte('y');
-    }
-}
 
 void config_interruts(void);
-uint8 sdiobuf[512];
+
+uint8 writebuf[512];
+uint8 readbuf[512];
 
 int main(void) {
     struct sd_card card;
@@ -108,7 +85,26 @@ int main(void) {
 
     uart4_send_str("G.Y.C");
 
-    sdio_read_block(&card, 0, sdiobuf);
+    for (int i = 0; i < 512; i++)
+        writebuf[i] = i;
+    sdio_write_block(&card, 0, writebuf);
+
+    uart4_send_str("\r\nG.Y.C\r\n");
+
+    for (int i = 0; i < 5120; i++)
+        for (int j = 0; j < 10000; j++)
+            ;
+
+    sdio_read_block(&card, 0, readbuf);
+
+    for (int i = 0; i < 5120; i++)
+        for (int j = 0; j < 10000; j++)
+            ;
+
+    uart4_send_str("\r\n====\r\n");
+
+    for (int i = 0; i < 512; i++)
+        uart4_send_byte(readbuf[i]);
 
     xtos_create_task(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1]);
     xtos_create_task(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1]);

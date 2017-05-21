@@ -32,7 +32,7 @@ void sdio_init_clkcr(uint8 clkdiv, uint8 buswid) {
     SDIO->CLKCR.bits.HWFC_EN = FALSE;
 }
 
-void sdio_config_dma(uint32 *dbuf, uint32 bufsize) {
+void sdio_config_dma_rx(uint32 *dbuf, uint32 bufsize) {
     // 清除中断标识
     DMA2->LIFCR.bits.FEIF3 = 1;
     DMA2->LIFCR.bits.DMEIF3 = 1;
@@ -66,4 +66,53 @@ void sdio_config_dma(uint32 *dbuf, uint32 bufsize) {
     DMA2_Stream3->CR.bits.EN = 1;
 }
 
+void sdio_config_dma_tx(const uint32 *dbuf, uint32 bufsize) {
+    // 清除中断标识
+    DMA2->LIFCR.bits.FEIF3 = 1;
+    DMA2->LIFCR.bits.DMEIF3 = 1;
+    DMA2->LIFCR.bits.TEIF3 = 1;
+    DMA2->LIFCR.bits.HTIF3 = 1;
+    DMA2->LIFCR.bits.TCIF3 = 1;
+    DMA2_Stream3->CR.bits.EN = 0;
+    DMA_ResetStream(DMA2_Stream3);
+    // 
+    DMA2_Stream3->CR.bits.CHSEL = 4;            // 通道选择
+    DMA2_Stream3->CR.bits.DIR = DMA_DIR_M2P;    // 传输方向
+    DMA2_Stream3->CR.bits.CIRC = 0;             // 关闭循环模式
+    DMA2_Stream3->CR.bits.PL = DMA_Priority_Very_High;// 优先级
+    DMA2_Stream3->CR.bits.PINC = 0;             // 外设增长
+    DMA2_Stream3->CR.bits.PSIZE = DMA_PSIZE_32Bits; // 外设数据宽度
+    DMA2_Stream3->CR.bits.MINC = 1;             // 内存增长
+    DMA2_Stream3->CR.bits.MSIZE = DMA_PSIZE_32Bits;
+    DMA2_Stream3->CR.bits.MBURST = DMA_Burst_4;
+    DMA2_Stream3->CR.bits.PBURST = DMA_Burst_4;
+    //
+    DMA2_Stream3->FCR.bits.DMDIS = 1;           // 开启FIFO Mode
+    DMA2_Stream3->FCR.bits.FTH = DMA_FIFO_4;
+    //
+    DMA2_Stream3->PAR = SDIO_FIFO_ADDRESS;
+    DMA2_Stream3->M0AR = (uint32)dbuf;
+    DMA2_Stream3->NDTR.all = bufsize;
+    // 中断,流控
+    DMA2_Stream3->CR.bits.TCIE = 1;
+    DMA2_Stream3->CR.bits.PFCTRL = 1;
+    // 使能
+    DMA2_Stream3->CR.bits.EN = 1;
+}
+
+void sdio_enable_interrupts(void) {
+    SDIO->MASK.bits.dcrcfaile = 1;
+    SDIO->MASK.bits.dtimeoute = 1;
+    SDIO->MASK.bits.dataende = 1;
+    SDIO->MASK.bits.rxoverre = 1;
+    SDIO->MASK.bits.stbiterre = 1;
+}
+
+void sdio_disable_interrupts(void) {
+    SDIO->MASK.bits.dcrcfaile = 0;
+    SDIO->MASK.bits.dtimeoute = 0;
+    SDIO->MASK.bits.dataende = 0;
+    SDIO->MASK.bits.rxoverre = 0;
+    SDIO->MASK.bits.stbiterre = 0;
+}
 

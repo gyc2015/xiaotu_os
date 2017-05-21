@@ -289,6 +289,10 @@ typedef struct sdio_regs {
 void sdio_send_cmd(union sdio_cmd cmd, uint32 arg);
 void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen);
 void sdio_init_clkcr(uint8 clkdiv, uint8 buswid);
-void sdio_config_dma(uint32 *dbuf, uint32 bufsize);
+void sdio_config_dma_rx(uint32 *dbuf, uint32 bufsize);
+void sdio_config_dma_tx(const uint32 *dbuf, uint32 bufsize);
+
+void sdio_enable_interrupts(void);
+void sdio_disable_interrupts(void);
 
 #endif // !STM32F407_SDIO_H

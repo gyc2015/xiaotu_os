@@ -1,5 +1,7 @@
 #include <stm32f407_sdio.h>
 #include <stm32f407_dma.h>
+#include <stm32f407_gpio.h>
+#include <stm32f407_rcc.h>
 
 #define SDIO_FIFO_ADDRESS ((uint32)0x40012C80)
 
@@ -17,10 +19,46 @@ void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen) {
 }
 
 /*
+ * sdio_init_hw - 初始化SDIO的硬件配置
+ *
+ * 设置PC8, PC9, PC10, PC11复用做SDIO_D[0:3], 上拉, 推挽
+ * 设置PD2复用做SDIO_CMD, 上拉, 推挽
+ * 设置PC12复用做SDIO_CK, 浮空, 推挽
+ * 开启APB2总线上的SDIO驱动时钟
+ * 开启DMA2的驱动时钟
+ */
+void sdio_init_hw(void) {
+    // 时钟
+    RCC->AHB1ENR.bits.gpioc = 1;
+    RCC->AHB1ENR.bits.gpiod = 1;
+    RCC->APB2ENR.bits.sdio = 1;
+    RCC->AHB1ENR.bits.dma2 = 1;
+    // 功能选择
+    GPIOC->AFR.bits.pin8 = GPIO_AF_SDIO;
+    GPIOC->AFR.bits.pin9 = GPIO_AF_SDIO;
+    GPIOC->AFR.bits.pin10 = GPIO_AF_SDIO;
+    GPIOC->AFR.bits.pin11 = GPIO_AF_SDIO;
+    GPIOC->AFR.bits.pin12 = GPIO_AF_SDIO;
+    GPIOD->AFR.bits.pin2 = GPIO_AF_SDIO;
+
+    struct gpio_pin_conf pincof;
+    // PC8, PC9, PC10, PC11 ==> D0, D1, D2, D3
+    pincof.mode = GPIO_Mode_Af;
+    pincof.otype = GPIO_OType_PP;
+    pincof.speed = GPIO_OSpeed_Medium;
+    pincof.pull = GPIO_Pull_Up;
+    gpio_init(GPIOC, GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 | GPIO_Pin_11, &pincof);
+    // PD2 ==> CMD
+    gpio_init(GPIOD, GPIO_Pin_2, &pincof);
+    // PC12 ==> CLK
+    pincof.pull = GPIO_Pull_No;
+    gpio_init(GPIOC, GPIO_Pin_12, &pincof);
+}
+
+/*
  * sdio_init_clkcr - 初始化时钟控制寄存器
  *
  * 在STM32F407中，SDIO的驱动时钟SDIOCLK频率为48MHz，由PLL直接驱动。
- * 正常情况下，输出的SDIO_CK频率不能超过400KHz
  * SDIO_CK = SDIOCLK / (CLKDIV + 2)
  */
 void sdio_init_clkcr(uint8 clkdiv, uint8 buswid) {

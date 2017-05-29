@@ -116,7 +116,7 @@ enum SD_Error {
 #define SDIO_HIGH_CAPACITY_MMC_CARD                ((uint32)0x00000007)
 
 /*
- * Mask for errors Card Status R1 (OCR Register)
+ * Mask for errors Card Status R1 (根本不是OCR寄存器，就是卡状态)
  */
 #define SD_OCR_ADDR_OUT_OF_RANGE        ((uint32)0x80000000)
 #define SD_OCR_ADDR_MISALIGNED          ((uint32)0x40000000)
@@ -138,6 +138,44 @@ enum SD_Error {
 #define SD_OCR_ERASE_RESET              ((uint32)0x00002000)
 #define SD_OCR_AKE_SEQ_ERROR            ((uint32)0x00000008)
 #define SD_OCR_ERRORBITS                ((uint32)0xFDFFE008)
+
+struct sd_card_status {
+    uint32 rsv0 : 3;                /* 0: 保留 */
+    uint32 AKE_SEQ_ERROR : 1;       /* 3: Error in the sequence of the authentication process */
+    uint32 rsv1 : 1;                /* 4: 保留 */
+    uint32 APP_CMD : 1;             /* 5: 一个ACMD */
+    uint32 rsv2 : 2;                /* 6: 保留 */
+    uint32 READY_FOR_DATA : 1;      /* 8: 缓存为空 */
+    uint32 CURRENT_STATE : 4;       /* 9: 卡的当前状态 */
+    uint32 ERASE_RESET : 1;         /* 13: 擦写操作清除 */
+    uint32 CARD_ECC_DISABLED : 1;   /* 14: The command has been executed without internal ECC */
+    uint32 WP_ERASE_SKIP : 1;       /* 15: 因为写保护导致部分擦写 */
+    uint32 CSD_OVERWRITE : 1;       /* 16: 文档没看懂，反正就是出错了 */
+    uint32 rsv3 : 2;                /* 17: 保留 */
+    uint32 ERROR : 1;               /* 19: 就是出错了 */
+    uint32 CC_ERROR : 1;            /* 20: 内部的卡控制器出错 */
+    uint32 CARD_ECC_FAILED : 1;     /* 21: 应用了卡内部的ECC，但仍然没有修正数据 */
+    uint32 ILLEGAL_COMMAND : 1;     /* 22: 非法指令 */
+    uint32 COM_CRC_ERROR : 1;       /* 23: 上一条指令的CRC校验错误 */
+    uint32 LOCK_UNLOCK_FAILED : 1;  /* 24: 就是锁或者解锁时出错 */
+    uint32 CARD_IS_LOCKED : 1;      /* 25: 卡被宿主锁了 */
+    uint32 WP_VIOLATION : 1;        /* 26: 企图写受保护的区域 */
+    uint32 ERASE_PARAM : 1;         /* 27: 文档没看懂 */
+    uint32 ERASE_SEQ_ERROR : 1;     /* 28: 擦写指令序列错误 */
+    uint32 BLOCK_LEN_ERROR : 1;     /* 29: 发送数据块长度与卡支持的不符 */
+    uint32 ADDRESS_ERROR : 1;       /* 30: misaligned address */
+    uint32 OUT_OF_RANGE : 1;        /* 31: 溢出 */
+};
+
+#define SD_CARD_STATE_IDLE  0x0
+#define SD_CARD_STATE_READY 0x1
+#define SD_CARD_STATE_IDENT 0x2
+#define SD_CARD_STATE_STBY  0x3
+#define SD_CARD_STATE_TRAN  0x4
+#define SD_CARD_STATE_DATA  0x5
+#define SD_CARD_STATE_RCV   0x6
+#define SD_CARD_STATE_PRG   0x7
+#define SD_CARD_STATE_DIS   0x8
 
 /*
  * Masks for R6 Response

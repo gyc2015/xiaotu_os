@@ -258,26 +258,26 @@ union sdio_mask {
 };
 
 typedef struct sdio_regs {
-    volatile union sdio_power POWER;        /* SDIO电力控制寄存器, offset: 0x00 */
-    volatile union sdio_clkcr CLKCR;        /* SDIO时钟控制寄存器, offset: 0x04 */
-    volatile uint32 ARG;                    /* SDIO指令参数寄存器, offset: 0x08 */
-    volatile union sdio_cmd CMD;            /* SDIO指令寄存器, offset: 0x0C */
-    volatile union sdio_respcmd RESPCMD;    /* SDIO指令响应寄存器, offset: 0x10 */
-    volatile uint32  RESP1;                 /* SDIO响应寄存器1, offset: 0x14 */
-    volatile uint32  RESP2;                 /* SDIO响应寄存器2, offset: 0x18 */
-    volatile uint32  RESP3;                 /* SDIO响应寄存器3, offset: 0x1C */
-    volatile uint32  RESP4;                 /* SDIO响应寄存器4, offset: 0x20 */
-    volatile uint32 DTIMER;                 /* SDIO数据超时寄存器, offset: 0x24 */
-    volatile union sdio_dlen DLEN;          /* SDIO数据长度寄存器, offset: 0x28 */
-    volatile union sdio_dctrl DCTRL;        /* SDIO数据控制寄存器, offset: 0x2C */
-    volatile union sdio_dcount DCOUNT;      /* SDIO数据计数寄存器, offset: 0x30 */
-    volatile union sdio_sta STA;            /* SDIO状态寄存器, offset: 0x34 */
-    volatile union sdio_icr ICR;            /* SDIO清除中断寄存器, offset: 0x38 */
-    volatile union sdio_mask MASK;          /* SDIO中断Mask使能寄存器, offset: 0x3C */
-    uint32 RESERVED0[2];            /* Reserved, 0x40-0x44                                  */
-    volatile uint32  FIFOCNT;       /* SDIO FIFO counter register,     Address offset: 0x48 */
-    uint32 RESERVED1[13];           /* Reserved, 0x4C-0x7C                                  */
-    volatile uint32 FIFO;           /* SDIO data FIFO register,        Address offset: 0x80 */
+    volatile union sdio_power POWER;        /* SDIO电力控制寄存器, 0x00 */
+    volatile union sdio_clkcr CLKCR;        /* SDIO时钟控制寄存器, 0x04 */
+    volatile uint32 ARG;                    /* SDIO指令参数寄存器, 0x08 */
+    volatile union sdio_cmd CMD;            /* SDIO指令寄存器, 0x0C */
+    volatile union sdio_respcmd RESPCMD;    /* SDIO指令响应寄存器, 0x10 */
+    volatile uint32 RESP1;                  /* SDIO响应寄存器1, 0x14 */
+    volatile uint32 RESP2;                  /* SDIO响应寄存器2, 0x18 */
+    volatile uint32 RESP3;                  /* SDIO响应寄存器3, 0x1C */
+    volatile uint32 RESP4;                  /* SDIO响应寄存器4, 0x20 */
+    volatile uint32 DTIMER;                 /* SDIO数据超时寄存器, 0x24 */
+    volatile union sdio_dlen DLEN;          /* SDIO数据长度寄存器, 0x28 */
+    volatile union sdio_dctrl DCTRL;        /* SDIO数据控制寄存器, 0x2C */
+    volatile union sdio_dcount DCOUNT;      /* SDIO数据计数寄存器, 0x30 */
+    volatile union sdio_sta STA;            /* SDIO状态寄存器, 0x34 */
+    volatile union sdio_icr ICR;            /* SDIO清除中断寄存器, 0x38 */
+    volatile union sdio_mask MASK;          /* SDIO中断Mask使能寄存器, 0x3C */
+    uint32 rsv0[2];                         /* 保留, 0x40-0x44 */
+    volatile uint32  FIFOCNT;               /* SDIO队列计数寄存器, 0x48 */
+    uint32 rsv1[13];                        /* 保留, 0x4C-0x7C */
+    volatile uint32 FIFO;                   /* SDIO数据队列, 0x80 */
 } sdio_regs_t;
 
 /* SDIO寄存器地址映射 */
@@ -285,10 +285,26 @@ typedef struct sdio_regs {
 /* SDIO寄存器指针访问 */
 #define SDIO ((sdio_regs_t *) SDIO_BASE)
 
+/*
+ * sdio_init_hw - 初始化SDIO的硬件配置
+ *
+ * 设置PC8, PC9, PC10, PC11复用做SDIO_D[0:3], 上拉, 推挽
+ * 设置PD2复用做SDIO_CMD, 上拉, 推挽
+ * 设置PC12复用做SDIO_CK, 浮空, 推挽
+ * 开启APB2总线上的SDIO驱动时钟
+ * 开启DMA2的驱动时钟
+ */
+void sdio_init_hw(void);
+/*
+ * sdio_init_clkcr - 初始化时钟控制寄存器
+ *
+ * 在STM32F407中，SDIO的驱动时钟SDIOCLK频率为48MHz，由PLL直接驱动。
+ * SDIO_CK = SDIOCLK / (CLKDIV + 2)
+ */
+void sdio_init_clkcr(uint8 clkdiv, uint8 buswid);
 
 void sdio_send_cmd(union sdio_cmd cmd, uint32 arg);
 void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen);
-void sdio_init_clkcr(uint8 clkdiv, uint8 buswid);
 void sdio_config_dma_rx(uint32 *dbuf, uint32 bufsize);
 void sdio_config_dma_tx(const uint32 *dbuf, uint32 bufsize);
 

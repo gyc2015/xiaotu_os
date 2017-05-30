@@ -5,6 +5,7 @@
 
 enum SD_Error {
     SDE_OK = 0x00,
+    SDE_CS_ERROR = 0xFE,
     SDE_ERROR = 0xFF,
 
     SDE_CMD_CRC_FAIL            = 1,    /* 接收到响应(但是CRC校验错误) */
@@ -116,30 +117,21 @@ enum SD_Error {
 #define SDIO_HIGH_CAPACITY_MMC_CARD                ((uint32)0x00000007)
 
 /*
- * Mask for errors Card Status R1 (根本不是OCR寄存器，就是卡状态)
+ * Mask for errors Card Status R1
  */
-#define SD_OCR_ADDR_OUT_OF_RANGE        ((uint32)0x80000000)
-#define SD_OCR_ADDR_MISALIGNED          ((uint32)0x40000000)
-#define SD_OCR_BLOCK_LEN_ERR            ((uint32)0x20000000)
-#define SD_OCR_ERASE_SEQ_ERR            ((uint32)0x10000000)
-#define SD_OCR_BAD_ERASE_PARAM          ((uint32)0x08000000)
-#define SD_OCR_WRITE_PROT_VIOLATION     ((uint32)0x04000000)
-#define SD_OCR_LOCK_UNLOCK_FAILED       ((uint32)0x01000000)
-#define SD_OCR_COM_CRC_FAILED           ((uint32)0x00800000)
-#define SD_OCR_ILLEGAL_CMD              ((uint32)0x00400000)
-#define SD_OCR_CARD_ECC_FAILED          ((uint32)0x00200000)
-#define SD_OCR_CC_ERROR                 ((uint32)0x00100000)
-#define SD_OCR_GENERAL_UNKNOWN_ERROR    ((uint32)0x00080000)
-#define SD_OCR_STREAM_READ_UNDERRUN     ((uint32)0x00040000)
-#define SD_OCR_STREAM_WRITE_OVERRUN     ((uint32)0x00020000)
-#define SD_OCR_CID_CSD_OVERWRIETE       ((uint32)0x00010000)
-#define SD_OCR_WP_ERASE_SKIP            ((uint32)0x00008000)
-#define SD_OCR_CARD_ECC_DISABLED        ((uint32)0x00004000)
-#define SD_OCR_ERASE_RESET              ((uint32)0x00002000)
-#define SD_OCR_AKE_SEQ_ERROR            ((uint32)0x00000008)
-#define SD_OCR_ERRORBITS                ((uint32)0xFDFFE008)
+#define SD_CSR_ERRORBITS                ((uint32)0xFDFFE008)
 
-struct sd_card_status {
+#define SD_CS_IDLE  0x0
+#define SD_CS_READY 0x1
+#define SD_CS_IDENT 0x2
+#define SD_CS_STBY  0x3
+#define SD_CS_TRAN  0x4
+#define SD_CS_DATA  0x5
+#define SD_CS_RCV   0x6
+#define SD_CS_PRG   0x7
+#define SD_CS_DIS   0x8
+
+struct sd_csr_bits {
     uint32 rsv0 : 3;                /* 0: 保留 */
     uint32 AKE_SEQ_ERROR : 1;       /* 3: Error in the sequence of the authentication process */
     uint32 rsv1 : 1;                /* 4: 保留 */
@@ -167,15 +159,10 @@ struct sd_card_status {
     uint32 OUT_OF_RANGE : 1;        /* 31: 溢出 */
 };
 
-#define SD_CARD_STATE_IDLE  0x0
-#define SD_CARD_STATE_READY 0x1
-#define SD_CARD_STATE_IDENT 0x2
-#define SD_CARD_STATE_STBY  0x3
-#define SD_CARD_STATE_TRAN  0x4
-#define SD_CARD_STATE_DATA  0x5
-#define SD_CARD_STATE_RCV   0x6
-#define SD_CARD_STATE_PRG   0x7
-#define SD_CARD_STATE_DIS   0x8
+union sd_csr {
+    struct sd_csr_bits bits;
+    uint32 all;
+};
 
 /*
  * Masks for R6 Response
@@ -286,8 +273,9 @@ struct sd_card {
     uint32 cardtype;
     uint32 rca;
 
-    union sd_cid cid;
-    union sd_csd csd;
+    union sd_cid cid;   /* 卡标识号 */
+    union sd_csd csd;   /* 卡描述数据 */
+    union sd_csr csr;   /* 卡状态寄存器 */
 
     uint32 blocknum;
     uint32 blocksize;
@@ -295,8 +283,8 @@ struct sd_card {
 };
 
 enum SD_Error sdio_init(struct sd_card *card);
-enum SD_Error sdio_read_block(const struct sd_card *card, uint32 bnum, uint8 *buf);
-enum SD_Error sdio_write_block(const struct sd_card *card, uint32 bnum, const uint8 *buf);
+enum SD_Error sdio_read_block(struct sd_card *card, uint32 bnum, uint8 *buf);
+enum SD_Error sdio_write_block(struct sd_card *card, uint32 bnum, const uint8 *buf);
 
 #endif
 

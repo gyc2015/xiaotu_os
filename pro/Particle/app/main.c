@@ -84,16 +84,7 @@ int main(void) {
     LED_B = LED_ON;
 
     uart4_send_str("G.Y.C");
-
-    for (int i = 0; i < 512; i++)
-        writebuf[i] = i;
-    sdio_write_block(&card, 0, writebuf);
-
     uart4_send_str("\r\nG.Y.C\r\n");
-
-    for (int i = 0; i < 5120; i++)
-        for (int j = 0; j < 10000; j++)
-            ;
 
     sdio_read_block(&card, 0, readbuf);
 

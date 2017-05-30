@@ -303,7 +303,7 @@ void sdio_init_hw(void);
  */
 void sdio_init_clkcr(uint8 clkdiv, uint8 buswid);
 
-void sdio_send_cmd(union sdio_cmd cmd, uint32 arg);
+void sdio_send_cmd(uint8 cmd, uint32 arg, uint8 res);
 void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen);
 void sdio_config_dma_rx(uint32 *dbuf, uint32 bufsize);
 void sdio_config_dma_tx(const uint32 *dbuf, uint32 bufsize);

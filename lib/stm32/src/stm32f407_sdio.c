@@ -5,11 +5,24 @@
 
 #define SDIO_FIFO_ADDRESS ((uint32)0x40012C80)
 
-void sdio_send_cmd(union sdio_cmd cmd, uint32 arg) {
+/*
+ * sdio_send_cmd - 发送指令
+ *
+ * @cmd: 指令编号
+ * @arg: 指令参数
+ * @res: 响应类型, 无响应 - SDIO_Response_No, 48位 - SDIO_Response_Short, 126位 - SDIO_Response_Long 
+ */
+void sdio_send_cmd(uint8 cmd, uint32 arg, uint8 res) {
+    union sdio_cmd tmp;
+    tmp.all = 0;
+    tmp.bits.CMDINDEX = cmd;
+    tmp.bits.WAITRESP = res;
+    tmp.bits.CPSMEN = 1;
+
     // 写入指令参数
     SDIO->ARG = arg;
     // 写入指令
-    SDIO->CMD = cmd;
+    SDIO->CMD = tmp;
 }
 
 void sdio_config_data(union sdio_dctrl dctrl, uint32 timeout, uint32 dlen) {

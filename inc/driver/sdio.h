@@ -3,46 +3,6 @@
 
 #include <stm32f407_sdio.h>
 
-enum SD_Error {
-    SDE_OK = 0x00,
-    SDE_CS_ERROR = 0xFE,
-    SDE_ERROR = 0xFF,
-
-    SDE_CMD_CRC_FAIL            = 1,    /* 接收到响应(但是CRC校验错误) */
-    SDE_DATA_CRC_FAIL           = 2, /*!< Data bock sent/received (CRC check Failed) */
-    SDE_CMD_RSP_TIMEOUT         = 3,    /* 指令响应超时 */
-    SDE_DATA_TIMEOUT            = 4, /*!< Data time out */
-    SDE_TX_UNDERRUN             = 5, /*!< Transmit FIFO under-run */
-    SDE_RX_OVERRUN              = 6, /*!< Receive FIFO over-run */
-    SDE_START_BIT_ERR           = 7, /*!< Start bit not detected on all data signals in widE bus mode */
-    SDE_CMD_OUT_OF_RANGE        = 8, /*!< CMD's argument was out of range.*/
-    SDE_ADDR_MISALIGNED         = 9, /*!< Misaligned address */
-    SDE_BLOCK_LEN_ERR           = 10, /*!< Transferred block length is not allowed for the card or the number of transferred bytes does not match the block length */
-    SDE_ERASE_SEQ_ERR           = 11, /*!< An error in the sequence of erase command occurs.*/
-    SDE_BAD_ERASE_PARAM         = 12, /*!< An Invalid selection for erase groups */
-    SDE_WRITE_PROT_VIOLATION    = 13, /*!< Attempt to program a write protect block */
-    SDE_LOCK_UNLOCK_FAILED      = 14, /*!< Sequence or password error has been detected in unlock command or if there was an attempt to access a locked card */
-    SDE_COM_CRC_FAILED          = 15, /*!< CRC check of the previous command failed */
-    SDE_ILLEGAL_CMD             = 16,   /* 非法指令 */
-    SDE_CARD_ECC_FAILED         = 17, /*!< Card internal ECC was applied but failed to correct the data */
-    SDE_CC_ERROR                = 18, /*!< Internal card controller error */
-    SDE_GENERAL_UNKNOWN_ERROR   = 19, /*!< General or Unknown error */
-    SDE_STREAM_READ_UNDERRUN    = 20, /*!< The card could not sustain data transfer in stream read operation. */
-    SDE_STREAM_WRITE_OVERRUN    = 21, /*!< The card could not sustain data programming in stream mode */
-    SDE_CID_CSD_OVERWRITE       = 22, /*!< CID/CSD overwrite error */
-    SDE_WP_ERASE_SKIP           = 23, /*!< only partial address space was erased */
-    SDE_CARD_ECC_DISABLED       = 24, /*!< Command has been executed without using internal ECC */
-    SDE_ERASE_RESET             = 25, /*!< Erase sequence was cleared before executing because an out of erase sequence command was received */
-    SDE_AKE_SEQ_ERROR           = 26, /*!< Error in sequence of authentication. */
-    SDE_INVALID_VOLTRANGE       = 27,
-    SDE_ADDR_OUT_OF_RANGE       = 28,
-    SDE_SWITCH_ERROR            = 29,
-    SDE_SDIO_DISABLED           = 30,
-    SDE_SDIO_FUNCTION_BUSY      = 31,
-    SDE_SDIO_FUNCTION_FAILED    = 32,
-    SDE_SDIO_UNKNOWN_FUNCTION   = 33
-
-};
 
 #define SD_CMD_GO_IDLE_STATE                       ((uint8)0)
 #define SD_CMD_SEND_OP_COND                        ((uint8)1)

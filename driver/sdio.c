@@ -33,6 +33,19 @@ static void sdio_init_hw(void) {
     gpio_init(GPIOC, GPIO_Pin_12, &pincof);
 }
 
+static enum SD_Error sdio_check_resp0(void) {
+    enum SD_Error e = SDE_ERROR;
+    uint32 timeout = SDIO_TIMEOUT;
+
+    // 判定response
+    while ((timeout > 0) && (0 == SDIO->STA.bits.cmdsent))
+        timeout--;
+    e = (0 == timeout) ? SDE_CMD_RSP_TIMEOUT : SDE_OK;
+    SDIO->ICR.bits.cmdsentc = 1;
+
+    return e;
+}
+
 static enum SD_Error sdio_check_resp1(struct sd_card *card, uint8 cmd) {
     uint32 status = SDIO->STA.all;
 
@@ -126,6 +139,7 @@ static enum SD_Error sdio_check_resp6(uint8 cmd, uint16 *rca) {
     *rca = (uint16)(r1 >> 16);
     return SDE_OK;
 }
+
 /*
  * sdio_check_resp7 - SD卡的接口条件，CMD8的响应
  */
@@ -151,22 +165,7 @@ static enum SD_Error sdio_check_resp7(uint32 vol) {
 
     return e;
 }
-/*
- * sdio_cmd0 - 发送CMD0控制SD卡复位
- */
-static enum SD_Error sdio_cmd0(void) {
-    enum SD_Error e = SDE_ERROR;
-    uint32 timeout = SDIO_TIMEOUT;
-    // 发送指令
-    sdio_send_cmd(SD_CMD_GO_IDLE_STATE, 0, SDIO_Response_No);
-    // 判定response
-    while ((timeout > 0) && (0 == SDIO->STA.bits.cmdsent))
-        timeout--;
-    e = (0 == timeout) ? SDE_CMD_RSP_TIMEOUT : SDE_OK;
-    SDIO->ICR.bits.cmdsentc = 1;
 
-    return e;
-}
 /*
  * sdio_cmd8 - 发送CMD8判定SD卡是否支持V2.0版的协议
  *
@@ -249,76 +248,32 @@ static enum SD_Error sdio_find_scr(struct sd_card *card, uint16 rca, uint32 *psc
     return e;
 }
 
-
-
-enum SD_Error sdio_poweron(struct sd_card *card) {
-    enum SD_Error e = sdio_cmd0();
-    if (SDE_OK != e)
-        return e;
-
-    e = sdio_cmd8();
-    if (SDE_CMD_RSP_TIMEOUT == e) {
-        card->cardtype = SDIO_STD_CAPACITY_SD_CARD_V1_1;
-    } else if (SDE_OK == e) {
-        card->cardtype = SDIO_STD_CAPACITY_SD_CARD_V2_0;
-    } else {
-        return e;
-    }
-
-    bool validvoltage = FALSE;
-    uint32 count = 0;
-    uint32 res = 0;
-    while (!validvoltage && (count < SD_MAX_VOLT_TRIAL)) {
-        e = sdio_cmd55(card, 0);
-        if (SDE_OK != e)
-            return e;
-        e = sdio_cmd41();
-        if (SDE_OK != e)
-            return e;
-        res = SDIO->RESP1;
-        validvoltage = (((res >> 31) == 1) ? TRUE : FALSE);
-        count++;
-    }
-
-    if (count >= SD_MAX_VOLT_TRIAL)
-        return SDE_INVALID_VOLTRANGE;
-
-    return e;
-}
-
-enum SD_Error sdio_init_card(struct sd_card *card) {
+/*
+ * sdio_load_card_info - 装载SD卡信息
+ */
+static enum SD_Error sdio_load_card_info(struct sd_card *card) {
     enum SD_Error e = SDE_OK;
 
     if (SDIO_Power_Off == SDIO->POWER.bits.PWRCTRL) {
         e = SDE_ERROR;
         return e;
     }
-    // CMD41: 不知道干嘛的
-    sdio_send_cmd(SD_CMD_ALL_SEND_CID, 0, SDIO_Response_Long);
-    e = sdio_check_resp2();
-    if (SDE_OK != e)
-        return e;
-    card->cid.words[0] = SDIO->RESP1;
-    card->cid.words[1] = SDIO->RESP2;
-    card->cid.words[2] = SDIO->RESP3;
-    card->cid.words[3] = SDIO->RESP4;
 
-    // CMD3
-    sdio_send_cmd(SD_CMD_SET_REL_ADDR, 0, SDIO_Response_Short);
-    uint16 rca = 0x01;
-    e = sdio_check_resp6(SD_CMD_SET_REL_ADDR, &rca);
-    if (SDE_OK != e)
-        return e;
-    card->rca = rca;
-    // CMD9
-    sdio_send_cmd(SD_CMD_SEND_CSD, (uint32)(rca << 16), SDIO_Response_Long);
+    sdio_send_cmd(SD_CMD_SEND_CSD, (uint32)(card->rca << 16), SDIO_Response_Long);
     e = sdio_check_resp2();
     if (SDE_OK != e)
         return e;
+
     card->csd.words[0] = SDIO->RESP1;
     card->csd.words[1] = SDIO->RESP2;
     card->csd.words[2] = SDIO->RESP3;
     card->csd.words[3] = SDIO->RESP4;
+
+    card->blocknum = ((card->csd.bits.DeviceSizeH << 2) + card->csd.bits.DeviceSizeL);
+    card->blocknum += 1;
+    card->blocknum *= (1 << card->csd.bits.DeviceSizeMul + 2);
+    card->blocksize = 1 << card->csd.bits.RdBlockLen;
+    card->capacity = card->blocknum * card->blocksize;
 
     return SDE_OK;
 }
@@ -402,32 +357,89 @@ enum SD_Error sdio_dis_widemode(struct sd_card *card, uint16 rca) {
 }
 
 /*
- * sdio_init - 初始化SDIO设备
+ * sdio_init_interface - 初始化SDIO接口
  */
-enum SD_Error sdio_init(struct sd_card *card) {
+static void sdio_init_interface() {
     sdio_init_hw();
 
     sdio_init_clkcr(118, SDIO_BusWid_1);
 
     SDIO->POWER.bits.PWRCTRL = SDIO_Power_On;
     SDIO->CLKCR.bits.CLKEN = 1;
-
-    enum SD_Error e = sdio_poweron(card);
+}
+/*
+ * sdio_init_card - SD卡的枚举过程
+ */
+static enum SD_Error sdio_init_card(struct sd_card *card) {
+    sdio_send_cmd(SD_CMD_GO_IDLE_STATE, 0, SDIO_Response_No);
+    enum SD_Error e = sdio_check_resp0();
     if (SDE_OK != e)
         return e;
-    e = sdio_init_card(card);
+
+    e = sdio_cmd8();
+    if (SDE_CMD_RSP_TIMEOUT == e)
+        card->cardtype = SDIO_STD_CAPACITY_SD_CARD_V1_1;
+    else if (SDE_OK == e)
+        card->cardtype = SDIO_STD_CAPACITY_SD_CARD_V2_0;
+    else
+        return e;
+
+    bool ready = FALSE;
+    uint32 count = 0, res = 0;
+    while (!ready && (count < SD_MAX_VOLT_TRIAL)) {
+        e = sdio_cmd55(card, 0);
+        if (SDE_OK != e)
+            return e;
+        e = sdio_cmd41();
+        if (SDE_OK != e)
+            return e;
+        res = SDIO->RESP1;
+        ready = (((res >> 31) == 1) ? TRUE : FALSE);
+        count++;
+    }
+
+    if (count >= SD_MAX_VOLT_TRIAL)
+        return SDE_INVALID_VOLTRANGE;
+
+    if (SDIO_STD_CAPACITY_SD_CARD_V2_0 == card->cardtype)
+        card->cardtype = (((res >> 30) & 1) ? SDIO_HIGH_CAPACITY_SD_CARD : SDIO_STD_CAPACITY_SD_CARD_V2_0);
+
+    // CMD2: 获取枚举信息CID
+    sdio_send_cmd(SD_CMD_ALL_SEND_CID, 0, SDIO_Response_Long);
+    e = sdio_check_resp2();
+    if (SDE_OK != e)
+        return e;
+    card->cid.words[0] = SDIO->RESP1;
+    card->cid.words[1] = SDIO->RESP2;
+    card->cid.words[2] = SDIO->RESP3;
+    card->cid.words[3] = SDIO->RESP4;
+
+    // CMD3
+    sdio_send_cmd(SD_CMD_SET_REL_ADDR, 0, SDIO_Response_Short);
+    uint16 rca = 0x01;
+    e = sdio_check_resp6(SD_CMD_SET_REL_ADDR, &rca);
+    if (SDE_OK != e)
+        return e;
+    card->rca = rca;
+
+    return SDE_OK;
+}
+
+/*
+ * sdio_init - 初始化SDIO设备
+ */
+enum SD_Error sdio_init(struct sd_card *card) {
+    sdio_init_interface();
+
+    enum SD_Error e = sdio_init_card(card);
     if (SDE_OK != e)
         return e;
 
-    card->blocknum = ((card->csd.bits.DeviceSizeH << 2) + card->csd.bits.DeviceSizeL);
-    card->blocknum += 1;
-    card->blocknum *= (1 << card->csd.bits.DeviceSizeMul + 2);
-    card->blocksize = 1 << card->csd.bits.RdBlockLen;
-    card->capacity = card->blocknum * card->blocksize;
-    
-    // 不明白为什么要再来一遍
-    // 大概是数据通信可以到25MHz，指令通信只能在400KHz下
     sdio_init_clkcr(0, SDIO_BusWid_1);
+
+    e = sdio_load_card_info(card);
+    if (SDE_OK != e)
+        return e;
 
     e = sdio_sel(card);
     if (SDE_OK != e)

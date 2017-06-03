@@ -457,19 +457,15 @@ enum SD_Error sdio_init(struct sd_card *card) {
  * @buf: 缓存地址
  */
 enum SD_Error sdio_read_block(struct sd_card *card, uint32 bnum, uint8 *buf) {
-    SDIO->DCTRL.all = 0;
-
-    uint16 blocksize = card->blocksize;
-
-    enum SD_Error e = SDE_OK;
-    union sdio_dctrl dctrl;
-
     // 设置Block大小
+    uint16 blocksize = card->blocksize;
     sdio_send_cmd(SD_CMD_SET_BLOCKLEN, blocksize, SDIO_Response_Short);
-    e = sdio_check_resp1(card, SD_CMD_SET_BLOCKLEN);
+    enum SD_Error e = sdio_check_resp1(card, SD_CMD_SET_BLOCKLEN);
     if (SDE_OK != e)
         return e;
     // 设置数据
+    SDIO->DCTRL.all = 0;
+    union sdio_dctrl dctrl;
     dctrl.all = SDIO->DCTRL.all;
     dctrl.bits.DBLOCKSIZE = SDIO_DataBlockSize_512b;
     dctrl.bits.DTDIR = SDIO_TransDir_ToSdio;
@@ -481,39 +477,41 @@ enum SD_Error sdio_read_block(struct sd_card *card, uint32 bnum, uint8 *buf) {
     e = sdio_check_resp1(card, SD_CMD_READ_SINGLE_BLOCK);
     if (SDE_OK != e)
         return e;
-
+    // 开启DMA和中断
     sdio_enable_interrupts();
     SDIO->DCTRL.bits.DMAEN = 1;
     sdio_config_dma_rx((uint32 *)buf, blocksize);
     return e;
 }
-
+/*
+ * sdio_write_block - 写一个block的数据,通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @bnum: 需要写数据的block地址
+ * @buf: 缓存地址
+ */
 enum SD_Error sdio_write_block(struct sd_card *card, uint32 bnum, const uint8 *buf) {
-    SDIO->DCTRL.all = 0;
-
-    uint16 blocksize = card->blocksize;
-
-    enum SD_Error e = SDE_OK;
-    union sdio_dctrl dctrl;
-
     // 设置Block大小
+    uint16 blocksize = card->blocksize;
     sdio_send_cmd(SD_CMD_SET_BLOCKLEN, blocksize, SDIO_Response_Short);
-    e = sdio_check_resp1(card, SD_CMD_SET_BLOCKLEN);
-    if (SDE_OK != e)
-        return e;
-    // CMD24
-    sdio_send_cmd(SD_CMD_WRITE_SINGLE_BLOCK, bnum, SDIO_Response_Short);
-    e = sdio_check_resp1(card, SD_CMD_WRITE_SINGLE_BLOCK);
+    enum SD_Error e = sdio_check_resp1(card, SD_CMD_SET_BLOCKLEN);
     if (SDE_OK != e)
         return e;
     // 设置数据
+    SDIO->DCTRL.all = 0;
+    union sdio_dctrl dctrl;
     dctrl.all = SDIO->DCTRL.all;
     dctrl.bits.DBLOCKSIZE = SDIO_DataBlockSize_512b;
     dctrl.bits.DTDIR = SDIO_TransDir_ToCard;
     dctrl.bits.DTMODE = SDIO_TransMode_Block;
     dctrl.bits.DTEN = 1;
     sdio_config_data(dctrl, SD_DATATIMEOUT, blocksize);
-
+    // CMD24
+    sdio_send_cmd(SD_CMD_WRITE_SINGLE_BLOCK, bnum, SDIO_Response_Short);
+    e = sdio_check_resp1(card, SD_CMD_WRITE_SINGLE_BLOCK);
+    if (SDE_OK != e)
+        return e;
+    // 开启DMA和中断
     sdio_enable_interrupts();
     SDIO->DCTRL.bits.DMAEN = 1;
     sdio_config_dma_tx((uint32 *)buf, blocksize);

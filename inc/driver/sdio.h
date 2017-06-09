@@ -81,15 +81,17 @@
  */
 #define SD_CSR_ERRORBITS                ((uint32)0xFDFFE008)
 
-#define SD_CS_IDLE  0x0
-#define SD_CS_READY 0x1
-#define SD_CS_IDENT 0x2
-#define SD_CS_STBY  0x3
-#define SD_CS_TRAN  0x4
-#define SD_CS_DATA  0x5
-#define SD_CS_RCV   0x6
-#define SD_CS_PRG   0x7
-#define SD_CS_DIS   0x8
+enum sd_cstate {
+    SD_CS_IDLE = 0x0,
+    SD_CS_READY = 0x1,
+    SD_CS_IDENT = 0x2,
+    SD_CS_STBY  = 0x3,
+    SD_CS_TRAN  = 0x4,
+    SD_CS_DATA  = 0x5,
+    SD_CS_RCV   = 0x6,
+    SD_CS_PRG   = 0x7,
+    SD_CS_DIS   = 0x8
+};
 
 struct sd_csr_bits {
     uint32 rsv0 : 3;                /* 0: 保留 */
@@ -229,6 +231,8 @@ union sd_cid {
     uint8 bytes[16];
 };
 
+
+
 struct sd_card {
     uint32 cardtype;
     uint32 rca;
@@ -243,8 +247,42 @@ struct sd_card {
 };
 
 enum SD_Error sdio_init(struct sd_card *card);
+/*
+ * sdio_read_block - 读一个block的数据,通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @addr: 需要读取block地址
+ * @buf: 缓存地址
+ */
 enum SD_Error sdio_read_block(struct sd_card *card, uint32 bnum, uint8 *buf);
+/*
+ * sdio_read_multiblock - 读多个block的数据,通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @addr: 需要读取block地址
+ * @buf: 缓存地址
+ * @n: 数据块数量
+ */
+enum SD_Error sdio_read_multiblock(struct sd_card *card, uint32 addr, uint8 *buf, uint32 n);
+/*
+ * sdio_write_block - 写一个block的数据,通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @addr: 需要写数据的block地址
+ * @buf: 缓存地址
+ */
 enum SD_Error sdio_write_block(struct sd_card *card, uint32 bnum, const uint8 *buf);
+/*
+ * sdio_write_multiblock - 写几个block的数据，通过DMA实现
+ *
+ * @card: 目标SD卡
+ * @addr: 需要写数据的block起始地址
+ * @buf: 缓存地址
+ * @n: 数据块数量
+ */
+enum SD_Error sdio_write_multiblock(struct sd_card *card, uint32 addr, const uint8 *buf, uint32 n);
+
+enum SD_Error sdio_get_card_state(struct sd_card *card, uint32 *state);
 
 #endif
 

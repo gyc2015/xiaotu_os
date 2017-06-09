@@ -66,15 +66,15 @@ void SysTick_Handler(void) {
 
 void config_interruts(void);
 
-uint8 writebuf[512];
-uint8 readbuf[512];
+//uint8 writebuf[512];
+uint8 readbuf[1024];
 
 int main(void) {
     struct sd_card card;
 
     led_init();
     systick_init(168000);
-    uart4_init(921600);
+    uart4_init(115200);
     sdio_init(&card);
 
     config_interruts();
@@ -84,19 +84,19 @@ int main(void) {
     LED_B = LED_ON;
 
     uart4_send_str("G.Y.C");
-/*
-    for (int i = 0; i < 512; i++)
-        writebuf[i] = 'B';
+    /*
+    for (int i = 0; i < 1024; i++)
+        readbuf[i] = 'B';
 
-    sdio_write_block(&card, 0, writebuf);
+    sdio_write_multiblock(&card, 512, readbuf, 2);
 
     for (int i = 0; i < 5120; i++)
         for (int j = 0; j < 10000; j++)
             ;
-*/
+    */
     uart4_send_str("\r\nG.Y.C\r\n");
 
-    sdio_read_block(&card, 0, readbuf);
+    sdio_read_multiblock(&card, 0, readbuf, 2);
 
     for (int i = 0; i < 5120; i++)
         for (int j = 0; j < 10000; j++)
@@ -104,7 +104,7 @@ int main(void) {
 
     uart4_send_str("\r\n====\r\n");
 
-    for (int i = 0; i < 512; i++)
+    for (int i = 0; i < 1024; i++)
         uart4_send_byte(readbuf[i]);
 
     xtos_create_task(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1]);

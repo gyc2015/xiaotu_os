@@ -81,7 +81,7 @@
  */
 #define SD_CSR_ERRORBITS                ((uint32)0xFDFFE008)
 
-enum sd_cstate {
+enum SD_CardState {
     SD_CS_IDLE = 0x0,
     SD_CS_READY = 0x1,
     SD_CS_IDENT = 0x2,
@@ -231,8 +231,6 @@ union sd_cid {
     uint8 bytes[16];
 };
 
-
-
 struct sd_card {
     uint32 cardtype;
     uint32 rca;
@@ -281,8 +279,26 @@ enum SD_Error sdio_write_block(struct sd_card *card, uint32 bnum, const uint8 *b
  * @n: 数据块数量
  */
 enum SD_Error sdio_write_multiblock(struct sd_card *card, uint32 addr, const uint8 *buf, uint32 n);
-
+/*
+ * sdio_write_finished - 检查发送操作是否完成
+ *
+ * @card: 目标SD卡
+ */
+enum SD_Error sdio_write_finished(struct sd_card *card);
+/*
+ * sdio_get_card_state - 获取卡状态
+ *
+ * @card: 目标SD卡
+ * @state: 获取的卡状态
+ */
 enum SD_Error sdio_get_card_state(struct sd_card *card, uint32 *state);
+/*
+ * sdio_expect_card_state - 预计SD卡应当达到的状态
+ *
+ * @card: 目标SD卡
+ * @cs: 预期状态
+ */
+enum SD_Error sdio_expect_card_state(struct sd_card *card, enum SD_CardState cs);
 
 #endif
 

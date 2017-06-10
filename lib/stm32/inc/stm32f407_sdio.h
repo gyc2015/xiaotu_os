@@ -168,6 +168,7 @@ union sdio_dcount {
 #define SDIO_FLAG_SDIOIT        ((uint32)0x00400000)
 #define SDIO_FLAG_CEATAEND      ((uint32)0x00800000)
 
+
 struct sdio_sta_bits {
     uint32 ccrcfail : 1;        /* 接收到指令响应，但CRC校验错误 */
     uint32 dcrcfail : 1;        /* 数据块发送/接收了，但CRC校验错误 */

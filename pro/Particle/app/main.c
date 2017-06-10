@@ -84,23 +84,28 @@ int main(void) {
     LED_B = LED_ON;
 
     uart4_send_str("G.Y.C");
-    /*
+/*
     for (int i = 0; i < 1024; i++)
-        readbuf[i] = 'B';
+        readbuf[i] = 'C';
 
-    sdio_write_multiblock(&card, 512, readbuf, 2);
-
-    for (int i = 0; i < 5120; i++)
-        for (int j = 0; j < 10000; j++)
-            ;
-    */
+    if (SDE_OK != sdio_write_multiblock(&card, 512, readbuf, 2))
+        uart4_send_str("\r\nhehe\r\n");
+    if (SDE_OK != sdio_write_finished(&card))
+        uart4_send_str("\r\nhaha\r\n");
+    while (SDE_OK != sdio_expect_card_state(&card, SD_CS_TRAN))
+        uart4_send_str("\r\nxixi\r\n");
+*/
     uart4_send_str("\r\nG.Y.C\r\n");
 
-    sdio_read_multiblock(&card, 0, readbuf, 2);
+    for (int i = 0; i < 1024; i++)
+        readbuf[i] = '0';
 
-    for (int i = 0; i < 5120; i++)
-        for (int j = 0; j < 10000; j++)
-            ;
+    if (SDE_OK != sdio_read_multiblock(&card, 0, readbuf, 2))
+        uart4_send_str("\r\nhehe\r\n");
+    if (SDE_OK != sdio_read_finished(&card))
+        uart4_send_str("\r\nhaha\r\n");
+    while (SDE_OK != sdio_expect_card_state(&card, SD_CS_TRAN))
+        uart4_send_str("\r\nxixi\r\n");
 
     uart4_send_str("\r\n====\r\n");
 

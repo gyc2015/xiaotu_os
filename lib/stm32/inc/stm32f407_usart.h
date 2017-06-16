@@ -3,8 +3,7 @@
  * stm32f407_usart - ´®¿Ú
  *
  ************************************** ¸ßÒÒ³¬.2017.0131 ***/
-#ifndef STM32F407_USART_H
-#define STM32F407_USART_H
+#pragma once
 
 #include <types.h>
 
@@ -231,4 +230,5 @@ typedef struct usart_regs {
 #define UART5  ((usart_regs_t *) UART5_BASE)
 #define USART6 ((usart_regs_t *) USART6_BASE)
 
-#endif // !STM32F407_USART_H
+
+

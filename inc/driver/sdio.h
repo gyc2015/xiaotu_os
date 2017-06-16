@@ -1,5 +1,9 @@
-#ifndef SDIO_H
-#define SDIO_H
+/***********************************************************
+ *
+ * sdio
+ *
+ ************************************** ∏ﬂ““≥¨.2017.0614 ***/
+#pragma once
 
 #include <stm32f407_sdio.h>
 
@@ -306,5 +310,4 @@ enum SD_Error sdio_get_card_state(struct sd_card *card, uint32 *state);
  */
 enum SD_Error sdio_expect_card_state(struct sd_card *card, enum SD_CardState cs);
 
-#endif
 

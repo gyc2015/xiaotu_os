@@ -8,9 +8,9 @@
 
 #include <stm32f407_gpio.h>
 
-#define LED_R (GPIOI->ODR.bits.pin5)
-#define LED_G (GPIOI->ODR.bits.pin6)
-#define LED_B (GPIOI->ODR.bits.pin7)
+#define LED_R PIout(5)
+#define LED_G PIout(6)
+#define LED_B PIout(7)
 
 #define LED_ON 0
 #define LED_OFF 1

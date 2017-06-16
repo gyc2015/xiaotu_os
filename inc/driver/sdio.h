@@ -263,6 +263,12 @@ enum SD_Error sdio_read_block(struct sd_card *card, uint32 bnum, uint8 *buf);
  */
 enum SD_Error sdio_read_multiblock(struct sd_card *card, uint32 addr, uint8 *buf, uint32 n);
 /*
+ * sdio_read_finished - 检查读取操作是否完成
+ *
+ * @card: 目标SD卡
+ */
+enum SD_Error sdio_read_finished(struct sd_card *card);
+/*
  * sdio_write_block - 写一个block的数据,通过DMA实现
  *
  * @card: 目标SD卡

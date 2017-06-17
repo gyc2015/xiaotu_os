@@ -5,6 +5,7 @@
 #include <iwdg.h>
 #include <wwdg.h>
 #include <sdio.h>
+#include <timer3.h>
 #include <stm32f407_dma.h>
 
 #define KEY (GPIOH->IDR.bits.pin15)
@@ -27,18 +28,26 @@ void task_switch() {
 }
 
 void taska() {
+    uint16 tmp = 0;
     while (1) {
-        LED_R = LED_ON;
-        LED_G = LED_OFF;
-        LED_B = LED_OFF;
+        if (tmp > 20000) {
+            //uart4_send_str("\r\nTask A\r\n");
+            tmp = 0;
+        } else {
+            tmp++;
+        }
     }
 }
 
 void taskb() {
+    uint16 tmp = 0;
     while (1) {
-        LED_R = LED_OFF;
-        LED_G = LED_ON;
-        LED_B = LED_OFF;
+        if (tmp > 20000) {
+            //uart4_send_str("\r\nTask B\r\n");
+            tmp = 0;
+        } else {
+            tmp++;
+        }
     }
 }
 
@@ -63,7 +72,6 @@ void SysTick_Handler(void) {
     }
 }
 
-
 void config_interruts(void);
 
 //uint8 writebuf[512];
@@ -76,7 +84,7 @@ int main(void) {
     systick_init(168000);
     uart4_init(115200);
     sdio_init(&card);
-
+    tim3_init(41999, 999);
     config_interruts();
 
     LED_R = LED_OFF;

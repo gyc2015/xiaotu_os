@@ -8,13 +8,11 @@
  * 复位值: 0x0000
  * 访问: 无等待状态, half-word访问
  */
-#define TIM_COUNT_DIR_UP   0
-#define TIM_COUNT_DIR_DOWN 1
-
-#define TIM_CENTER_ALIGNED_EDGE  0
-#define TIM_CENTER_ALIGNED_MODE1 1
-#define TIM_CENTER_ALIGNED_MODE2 2
-#define TIM_CENTER_ALIGNED_MODE3 3
+#define TIM_COUNT_DIR_UP        0
+#define TIM_COUNT_DIR_DOWN      1
+#define TIM_COUNT_DIR_CENTER1   2
+#define TIM_COUNT_DIR_CENTER2   4
+#define TIM_COUNT_DIR_CENTER3   6
 
 struct timer_cr1_bits {
     /* 使能计数器 */
@@ -25,10 +23,8 @@ struct timer_cr1_bits {
     uint16 URS : 1;
     /* One Pulse Mode,计数器在下次UEV发生时停止计数,清除CEN */
     uint16 OPM : 1;
-    /* 0:向上计数，1:向下计数 */
-    uint16 DIR : 1;
-    /* 中心模式选择, Center-aligned Mode Selection */
-    uint16 CMS : 2;
+    /* DIR计数方向, 综合了DIR和CMS两个位段 */
+    uint16 DIR : 3;
     /* 自动重装载使能,1:TIMx_ARR寄存器有缓存 */
     uint16 ARPE : 1;
     /* Clock Division, dead-time相关 */
@@ -71,8 +67,6 @@ struct timer_cr2_bits {
     uint16 OIS3N : 1;
     /* 通道4闲时(when MOE=0)输出 */
     uint16 OIS4 : 1;
-    /* 通道4N闲时(when MOE=0)输出 */
-    uint16 OIS4N : 1;
     uint16 rsv1 : 1;
 };
 union timer_cr2 {
@@ -226,17 +220,17 @@ union timer_ccmr {
 struct timer_ccer_bits {
     uint16 CC1E : 1;
     uint16 CC1P : 1;
-    uint16 rsv0 : 1;
+    uint16 CC1NE : 1;
     uint16 CC1NP : 1;
 
     uint16 CC2E : 1;
     uint16 CC2P : 1;
-    uint16 rsv1 : 1;
+    uint16 CC2NE : 1;
     uint16 CC2NP : 1;
 
     uint16 CC3E : 1;
     uint16 CC3P : 1;
-    uint16 rsv2 : 1;
+    uint16 CC3NE : 1;
     uint16 CC3NP : 1;
 
     uint16 CC4E : 1;
@@ -296,7 +290,7 @@ typedef struct timer_regs {
     uint16 rsv3;
     volatile union timer_sr SR;         /* TIM状态寄存器, offset: 0x10 */
     uint16 rsv4;
-    volatile struct timer_egr_bits EGR; /* TIM事件生成寄存器, offset: 0x14 */
+    volatile union timer_egr EGR;       /* TIM事件生成寄存器, offset: 0x14 */
     uint16 rsv5;
     volatile union timer_ccmr CCMR1;    /* TIM捕获/比较模式寄存器1, offset: 0x18 */
     uint16 rsv6;

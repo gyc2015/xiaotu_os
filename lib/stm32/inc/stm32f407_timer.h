@@ -53,21 +53,14 @@ struct timer_cr2_bits {
     uint16 MMS : 3;
     /* TI1的输入选择 */
     uint16 TI1S : 1;
-    /* 通道1闲时(when MOE=0)输出 */
-    uint16 OIS1 : 1;
-    /* 通道1N闲时(when MOE=0)输出 */
-    uint16 OIS1N : 1;
+    /* 通道1闲时(when MOE=0)输出,合并了OISx和OISxN位 */
+    uint16 OIS1 : 2;
     /* 通道2闲时(when MOE=0)输出 */
-    uint16 OIS2 : 1;
-    /* 通道2N闲时(when MOE=0)输出 */
-    uint16 OIS2N : 1;
+    uint16 OIS2 : 2;
     /* 通道3闲时(when MOE=0)输出 */
-    uint16 OIS3 : 1;
-    /* 通道3N闲时(when MOE=0)输出 */
-    uint16 OIS3N : 1;
+    uint16 OIS3 : 2;
     /* 通道4闲时(when MOE=0)输出 */
-    uint16 OIS4 : 1;
-    uint16 rsv1 : 1;
+    uint16 OIS4 : 2;
 };
 union timer_cr2 {
     struct timer_cr2_bits bits;
@@ -174,6 +167,35 @@ union timer_egr {
  * 复位值: 0x0000
  * 访问: 无等待状态, half-word访问
  */
+#define TIM_OCMode_Frozen   0   /* 输出对比寄存器CCR与计数寄存器CNT的对比关系不影响输出 */
+#define TIM_OCMode_ACT      1   /* 当计数寄存器CNT与对比寄存器CCR相等时, OCxREF信号置高 */
+#define TIM_OCMode_INACT    2   /* 置OCxREF低 */
+#define TIM_OCMode_Toggle   3   /* 翻转OCxREF */
+#define TIM_OCMode_FINACT   4   /* 强制OCxREF为低 */
+#define TIM_OCMode_FACT     5   /* 强制OCxREF为高 */
+#define TIM_OCMode_PWM1     6   /* 向上计数时,当CNT < CCR时 OCxREF = 1 否则OCxREF = 0, 向下计数时, 当CNT > CCR时 OCxREF = 0 否则OCxREF = 1 */
+#define TIM_OCMode_PWM2     7   /* 输出电平逻辑与PWM1相反 */
+struct timer_oc_cfg {
+    uint8 CCxS : 2;
+    uint8 OCxFE : 1;
+    uint8 OCxPE : 1;
+    uint8 OCxM : 3;
+    uint8 OCxCE : 1;
+};
+struct timer_ic_cfg {
+    uint8 CCxS : 2;
+    uint8 ICxPSC : 2;
+    uint8 ICxF : 4;
+};
+union timer_chanel_mode {
+    struct timer_oc_cfg oc;
+    struct timer_ic_cfg ic;
+    uint8 byte;
+};
+struct timer_ccmr_bytes {
+    uint16 b13 : 8;
+    uint16 b24 : 8;
+};
 struct timer_ccmr_oc_bits {
     /* 选择工作模式 */
     uint16 CC13S : 2;
@@ -209,6 +231,7 @@ struct timer_ccmr_ic_bits{
 union timer_ccmr {
     struct timer_ccmr_oc_bits ocbits;
     struct timer_ccmr_ic_bits icbits;
+    struct timer_ccmr_bytes bytes;
     uint16 all;
 };
 /*
@@ -217,6 +240,17 @@ union timer_ccmr {
  * 复位值: 0x0000
  * 访问: 无等待状态, half-word访问
  */
+struct timer_cen {
+    uint8 CCxE : 1;
+    uint8 CCxP : 1;
+    uint8 CCxNE : 1;
+    uint8 CCxNP : 1;
+    uint8 rsv : 4;
+};
+union timer_chanel_en {
+    struct timer_cen bits;
+    uint8 all;
+};
 struct timer_ccer_bits {
     uint16 CC1E : 1;
     uint16 CC1P : 1;
@@ -318,8 +352,6 @@ typedef struct timer_regs {
     uint16 rsv14;
 } timer_regs_t;
 
-
-
 /* 串口寄存器地址映射 */
 #define TIM1_BASE 0x40010000
 #define TIM8_BASE 0x40010400
@@ -347,8 +379,17 @@ typedef struct timer_regs {
 #define TIM13 ((timer_regs_t *) TIM13_BASE)
 #define TIM14 ((timer_regs_t *) TIM14_BASE)
 
+/***********************************************************************/
 
+/*
+ * timer_channel_config - 设置计时器通道
+ *
+ * @tim: 计时器
+ * @c: 通道
+ * @cfg: 配置
+ */
+void timer_set_ccmr(timer_regs_t * tim, uint8 c, union timer_chanel_mode cfg);
 
-
+void timer_set_ccer(timer_regs_t * tim, uint8 c, union timer_chanel_en cen);
 
 

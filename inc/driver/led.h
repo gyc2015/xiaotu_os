@@ -20,4 +20,11 @@
  */
 void led_init(void);
 
+void led_pwm_init(uint8 r, uint8 g, uint8 b);
+
+/*
+* led_set_color - ÉèÖÃµÆ¹âÑÕÉ«
+*/
+void led_set_color(uint8 r, uint8 g, uint8 b);
+
 #endif // !LED_H

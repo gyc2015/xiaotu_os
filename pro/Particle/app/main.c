@@ -28,26 +28,14 @@ void task_switch() {
 }
 
 void taska() {
-    uint16 tmp = 0;
     while (1) {
-        if (tmp > 20000) {
-            //uart4_send_str("\r\nTask A\r\n");
-            tmp = 0;
-        } else {
-            tmp++;
-        }
+        led_set_color(100, 50, 0);
     }
 }
 
 void taskb() {
-    uint16 tmp = 0;
     while (1) {
-        if (tmp > 20000) {
-            //uart4_send_str("\r\nTask B\r\n");
-            tmp = 0;
-        } else {
-            tmp++;
-        }
+        led_set_color(0, 50, 100);
     }
 }
 
@@ -80,11 +68,12 @@ uint8 readbuf[1024];
 int main(void) {
     struct sd_card card;
 
-    led_init();
+    //led_init();
+    led_pwm_init(0, 20, 0);
     systick_init(168000);
     uart4_init(115200);
     sdio_init(&card);
-    tim3_init(41999, 999);
+    //tim3_init(41999, 999);
     config_interruts();
 
     LED_R = LED_OFF;

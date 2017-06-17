@@ -13,6 +13,6 @@ void config_interruts(void) {
     NVIC->IPR.bits.DMA2_Stream3_Irq = 0x00;
     NVIC->ISER.bits.DMA2_Stream3_Irq = 1;
 
-    NVIC->IPR.bits.TIM3_Irq = 0x00;
-    NVIC->ISER.bits.TIM3_Irq = 1;
+    //NVIC->IPR.bits.TIM3_Irq = 0x00;
+    //NVIC->ISER.bits.TIM3_Irq = 1;
 }

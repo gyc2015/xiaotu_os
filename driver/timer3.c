@@ -19,7 +19,7 @@ void tim3_init(uint16 pres, uint16 period) {
     TIM3->CR1.bits.CEN = 1;
 }
 
-int counter = 0;
+static int counter = 0;
 void TIM3_IRQHandler(void) {
     if (1 == TIM3->SR.bits.UIF) {
         if (0 == counter % 3) {

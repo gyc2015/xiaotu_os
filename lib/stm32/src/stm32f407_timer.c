@@ -1,7 +1,12 @@
+/***********************************************************
+ *
+ * stm32f407_timer - 计时器
+ *
+ ************************************** 高乙超.2017.0618 ***/
 #include <stm32f407_timer.h>
 
 /*
- * timer_channel_config - 设置计时器通道
+ * timer_set_ccmr - 设置计时器通道,工作模式
  *
  * @tim: 计时器
  * @c: 通道
@@ -27,7 +32,13 @@ void timer_set_ccmr(timer_regs_t * tim, uint8 c, union timer_chanel_mode cfg) {
         break;
     }
 }
-
+/*
+ * timer_set_ccer - 设置计时器通道,使能和工作电平
+ *
+ * @tim: 计时器
+ * @c: 通道
+ * @cen: 配置
+ */
 void timer_set_ccer(timer_regs_t * tim, uint8 c, union timer_chanel_en cen) {
     uint16 tmp = tim->CCER.all;
     c = 4 * (c - 1);

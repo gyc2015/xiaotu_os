@@ -16,11 +16,13 @@
 #define LED_OFF 1
 
 /*
- * init_led - 初始化三色灯
+ * led_init - 初始化三色灯
  */
 void led_init(void);
-
-void led_pwm_init(uint8 r, uint8 g, uint8 b);
+/*
+ * led_pwm_init - 初始化PWM控制的三色灯
+ */
+void led_pwm_init(void);
 
 /*
 * led_set_color - 设置灯光颜色

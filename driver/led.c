@@ -7,9 +7,9 @@
 #include <led.h>
 #include <stm32f407_timer.h>
 /*
- * init_led - 初始化三色灯
+ * led_init - 初始化三色灯
  */
-void led_init() {
+void led_init(void) {
     RCC->AHB1ENR.bits.gpioi = 1;
 
     GPIOI->MODER.bits.pin5 = GPIO_Mode_Out;
@@ -33,7 +33,7 @@ void led_init() {
     LED_B = LED_OFF;
 }
 
-static void led_pwmio_init() {
+static void led_pwmio_init(void) {
     RCC->AHB1ENR.bits.gpioi = 1;
     // 功能选择, TIM8的通道1,2,3
     GPIOI->AFR.bits.pin5 = 0x03;
@@ -60,7 +60,7 @@ static void led_pwmio_init() {
 /*
  * led_pwm_init - 初始化PWM控制的三色灯
  */
-void led_pwm_init(uint8 r, uint8 g, uint8 b) {
+void led_pwm_init(void) {
     led_pwmio_init();
 
     RCC->APB2ENR.bits.tim8 = 1;
@@ -93,9 +93,9 @@ void led_pwm_init(uint8 r, uint8 g, uint8 b) {
     TIM8->CR2.bits.OIS2 = 0;
     TIM8->CR2.bits.OIS3 = 0;
 
-    TIM8->CCR1 = r;
-    TIM8->CCR2 = g;
-    TIM8->CCR3 = b;
+    TIM8->CCR1 = 0;
+    TIM8->CCR2 = 0;
+    TIM8->CCR3 = 0;
     TIM8->CR1.bits.CEN = 1;
     TIM8->BDTR.bits.MOE = 1;
 }

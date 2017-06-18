@@ -426,6 +426,8 @@ static enum SD_Error sdio_init_card(struct sd_card *card) {
 }
 /*
  * sdio_init - 初始化SDIO设备
+ *
+ * @card: SD卡
  */
 enum SD_Error sdio_init(struct sd_card *card) {
     sdio_init_interface();

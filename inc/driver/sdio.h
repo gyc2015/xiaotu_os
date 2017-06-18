@@ -247,7 +247,11 @@ struct sd_card {
     uint32 blocksize;
     uint64 capacity;
 };
-
+/*
+ * sdio_init - 初始化SDIO设备
+ *
+ * @card: SD卡
+ */
 enum SD_Error sdio_init(struct sd_card *card);
 /*
  * sdio_read_block - 读一个block的数据,通过DMA实现

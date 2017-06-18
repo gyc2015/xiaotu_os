@@ -1,5 +1,10 @@
-#ifndef STM32F407_DMA_H
-#define STM32F407_DMA_H
+/***********************************************************
+ *
+ * stm32f407_dma - 直接内存访问
+ *
+ ************************************** 高乙超.2017.0618 ***/
+
+#pragma once
 
 #include <types.h>
 
@@ -275,5 +280,3 @@ void DMA_ResetStream(dma_stream_regs_t *ds);
 
 
 
-
-#endif // !STM32F407_DMA_H

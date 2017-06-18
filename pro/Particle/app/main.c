@@ -1,5 +1,6 @@
 #include <stm32f407.h>
 #include <xtos.h>
+#include <power.h>
 #include <led.h>
 #include <uart4.h>
 #include <iwdg.h>
@@ -8,7 +9,13 @@
 #include <timer3.h>
 #include <stm32f407_dma.h>
 
-#define KEY (GPIOH->IDR.bits.pin15)
+//uint8 writebuf[512];
+uint8 readbuf[1024];
+float fvcc = 0;
+float fcurrent = 0;
+float fd1v2 = 0;
+float fd3v3 = 0;
+float fa2v5 = 0;
 
 #define TASKA_STK_SIZE 1024
 #define TASKB_STK_SIZE 1024
@@ -36,6 +43,11 @@ void taska() {
 void taskb() {
     while (1) {
         led_set_color(0, 50, 100);
+        fvcc = power_get_vcc();
+        fcurrent = power_get_current();
+        fd1v2 = power_get_D1V2();
+        fd3v3 = power_get_D3V3();
+        fa2v5 = power_get_A2V5();
     }
 }
 
@@ -62,24 +74,26 @@ void SysTick_Handler(void) {
 
 void config_interruts(void);
 
-//uint8 writebuf[512];
-uint8 readbuf[1024];
 
 int main(void) {
     struct sd_card card;
 
     //led_init();
-    led_pwm_init(0, 20, 0);
+    power_init();
+    led_pwm_init();
     systick_init(168000);
     uart4_init(115200);
     sdio_init(&card);
     //tim3_init(41999, 999);
     config_interruts();
 
-    LED_R = LED_OFF;
-    LED_G = LED_OFF;
-    LED_B = LED_ON;
+    fvcc = power_get_vcc();
+    fcurrent = power_get_current();
+    fd1v2 = power_get_D1V2();
+    fd3v3 = power_get_D3V3();
+    fa2v5 = power_get_A2V5();
 
+    led_set_color(0, 0, 50);
     uart4_send_str("G.Y.C");
 /*
     for (int i = 0; i < 1024; i++)

@@ -452,6 +452,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\lib\stm32\src\stm32f407_sdio.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f407_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\stm32\src\stm32f407_timer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -516,6 +521,11 @@
               <FileName>sdio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\sdio.c</FilePath>
+            </File>
+            <File>
+              <FileName>power.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\power.c</FilePath>
             </File>
           </Files>
         </Group>

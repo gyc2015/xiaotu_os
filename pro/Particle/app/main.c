@@ -74,7 +74,6 @@ void SysTick_Handler(void) {
 
 void config_interruts(void);
 
-
 int main(void) {
     struct sd_card card;
 

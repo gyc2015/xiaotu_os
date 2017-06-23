@@ -4,7 +4,7 @@
 #include <stm32f407_dma.h>
 
 #include <utils.h>
-#include <uart4.h>
+#include <uart.h>
 
 static void sdio_init_hw(void) {
     struct gpio_pin_conf pincof;
@@ -720,18 +720,18 @@ void SDIO_IRQHandler(void) {
         SDIO->ICR.bits.dataendc = 1;
         _trs_end_flag = 1;
         _trs_err = SDE_OK;
-        uart4_send_byte('g');
+        uart_send_byte(USART3, 'g');
     } else if (SDIO->STA.bits.dcrcfail) {
-        uart4_send_byte('a');
+        uart_send_byte(USART3, 'a');
         SDIO->ICR.bits.dcrcfailc = 1;
     } else if (SDIO->STA.bits.dtimeout) {
-        uart4_send_byte('b');
+        uart_send_byte(USART3, 'b');
         SDIO->ICR.bits.dtimeoutc = 1;
     } else if (SDIO->STA.bits.rxoverr) {
-        uart4_send_byte('c');
+        uart_send_byte(USART3, 'c');
         SDIO->ICR.bits.rxoverrc = 1;
     } else if (SDIO->STA.bits.stbiterr) {
-        uart4_send_byte('d');
+        uart_send_byte(USART3, 'd');
         SDIO->ICR.bits.stbiterrc = 1;
     }
 
@@ -742,7 +742,7 @@ void DMA2_Stream3_IRQHandler(void) {
     if (1 == DMA2->LISR.bits.TCIF3) {
         _dma_end_flag = 1;
         DMA2->LIFCR.bits.TCIF3 = 1;
-        uart4_send_byte('y');
+        uart_send_byte(USART3, 'y');
     }
 }
 

@@ -457,6 +457,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\lib\stm32\src\stm32f407_timer.c</FilePath>
             </File>
+            <File>
+              <FileName>stm32f407_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\stm32\src\stm32f407_usart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -503,11 +508,6 @@
               <FilePath>..\..\driver\led.c</FilePath>
             </File>
             <File>
-              <FileName>usart4.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\usart4.c</FilePath>
-            </File>
-            <File>
               <FileName>iwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\iwdg.c</FilePath>
@@ -526,6 +526,11 @@
               <FileName>power.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\power.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\usart.c</FilePath>
             </File>
           </Files>
         </Group>

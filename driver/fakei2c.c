@@ -9,7 +9,7 @@
  */
 static void _I2C_Delay(void) {
     int i;
-    for (i = 0; i < 100; i++);
+    for (i = 0; i < 600; i++);
 }
 /*
 * I2C_Start - 发送起始信号

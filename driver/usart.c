@@ -26,12 +26,12 @@ void usart3_init(uint32 baudrate) {
     uart_init(USART3, baudrate);
 }
 
-/*
-void UART4_IRQHandler(void) {
-    if (0 != UART4->SR.bits.RXNE) {
-        uint8 data = UART4->DR.bits.byte;
-        uart4_send_byte(data);
+
+void USART3_IRQHandler(void) {
+    if (0 != USART3->SR.bits.RXNE) {
+        uint8 data = USART3->DR.bits.byte;
+        uart_send_byte(USART3, data);
     }
 }
-*/
+
 

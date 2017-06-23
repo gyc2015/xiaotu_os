@@ -3,8 +3,7 @@
  * led.h - 三色灯驱动
  *
  ************************************** 高乙超.2017.0201 ***/
-#ifndef LED_H
-#define LED_H
+#pragma once
 
 #include <stm32f407_gpio.h>
 
@@ -24,4 +23,3 @@
 void led_init(void);
 void beep_init(void);
 
-#endif // !LED_H

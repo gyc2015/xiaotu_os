@@ -33,3 +33,15 @@ void led_init(void) {
     LED_1 = LED_OFF;
     LED_2 = LED_OFF;
 }
+
+void beep_init(void) {
+    RCC->AHB1ENR.bits.gpiog = 1;
+
+    GPIOG->MODER.bits.pin7 = GPIO_Mode_Out;
+    GPIOG->OTYPER.bits.pin7 = GPIO_OType_PP;
+    GPIOG->PUPDR.bits.pin7 = GPIO_Pull_Up;
+    GPIOG->OSPEEDR.bits.pin7 = GPIO_OSpeed_Very_High;
+
+    BEEP = BEEP_OFF;
+}
+

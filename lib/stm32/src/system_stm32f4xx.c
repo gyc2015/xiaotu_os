@@ -2,7 +2,7 @@
 #include <stm32f407_rcc.h>
 #include <stm32f407_flash.h>
 
-#define PLL_M 24
+#define PLL_M 8
 #define PLL_N 336
 #define PLL_P 2
 #define PLL_Q 7

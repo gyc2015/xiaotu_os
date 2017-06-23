@@ -3,6 +3,7 @@
 
 int main(void) {
     led_init();
+    beep_init();
 
     LED_0 = LED_OFF;
     LED_1 = LED_OFF;
@@ -11,6 +12,7 @@ int main(void) {
     LED_0 = LED_ON;
     LED_1 = LED_ON;
     LED_2 = LED_ON;
+
 
 
     while(1) {}

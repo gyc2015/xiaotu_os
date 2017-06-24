@@ -22,6 +22,7 @@ typedef unsigned long const     ucint32;
 typedef unsigned long long const ucint64;
 
 typedef unsigned char   bool;
+//typedef unsigned long   size_t;
 
 #ifndef TRUE
 #define TRUE 1
@@ -45,5 +46,25 @@ union Data16 {
     uint16 half_word;
     uint8 byte[2];
 };
+
+/*
+ * offsetof - 求取一个结构体某个成员的偏移量
+ *
+ * @type: 结构体类型
+ * @member: 成员名称
+ */
+#define offsetof(type, member) ((unsigned long) &((type *)0)->member)
+/*
+ * container_of - 求取某一指针所在结构体的地址
+ *
+ * @ptr: 结构体成员指针
+ * @type: 结构体类型
+ * @member: 成员名称
+ */
+#define container_of(ptr, type, member) ((type *)((uint8 *)(ptr) - offsetof(type, member)))
+
+
+
+
 
 #endif

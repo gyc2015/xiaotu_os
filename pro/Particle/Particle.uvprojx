@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc;..\..\lib\eMPL\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -481,6 +481,11 @@
               <FileName>utils.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\lib\utils\src\utils.c</FilePath>
+            </File>
+            <File>
+              <FileName>list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\utils\src\list.c</FilePath>
             </File>
           </Files>
         </Group>

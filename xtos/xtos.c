@@ -1,4 +1,5 @@
 #include <xtos.h>
+#include <xtos_time.h>
 #include <stm32f407.h>
 
 struct xtos_task_descriptor *gp_xtos_cur_task;
@@ -11,11 +12,16 @@ struct list_head L0_tasks;
 void xtos_first_switch(void);
 void xtos_context_switch(void);
 void xtos_pendsv_handler(void);
-
-void xtos_init(uint32 ticks) {
+/*
+ * xtos_init - 初始化操作系统
+ *
+ * 1. 初始化任务队列
+ * 2. 初始化系统时钟,每1ms产生一次中断,在中断服务函数中进行系统调度
+ */
+void xtos_init() {
     init_list_head(&L0_tasks);
 
-    SYSTICK->LOAD.bits.cnt = ticks;         // 重装载数据
+    SYSTICK->LOAD.bits.cnt = XTOS_TICK_PMS; // 重装载数据
     SYSTICK->VAL.bits.cnt = 0;              // 清除当前计数
 
     SCB->SHP[SysTicks_Irq_n - 4] = 0x00;    // 暂时赋予最高优先级
@@ -24,7 +30,6 @@ void xtos_init(uint32 ticks) {
     SYSTICK->CTRL.bits.tickint = 1;         // 开启计数溢出中断
     SYSTICK->CTRL.bits.en = 0;              // 暂不开启计时器
 }
-
 /*
  * xtos_task_finished - 任务结束后的回调函数
  */
@@ -109,7 +114,9 @@ void xtos_init_task_struct(struct xtos_task_descriptor *tcb, xtos_task task, uin
     init_list_head(&tcb->list);
     list_add_tail(&tcb->list, &L0_tasks);
 }
-
+/*
+ * xtos_schedule - 系统调度器
+ */
 void xtos_schedule(void) {
     list_add_tail(&gp_xtos_cur_task->list, &L0_tasks);
 
@@ -119,7 +126,9 @@ void xtos_schedule(void) {
 
     xtos_context_switch();
 }
-
+/*
+ * xtos_start - 开启操作系统
+ */
 void xtos_start(void) {
     gp_xtos_next_task = list_first_entry(&L0_tasks, struct xtos_task_descriptor, list);
 
@@ -129,15 +138,10 @@ void xtos_start(void) {
     xtos_first_switch();
 }
 
-static uint32 xtos_ms = 0;
-uint32 xtos_get_ms(void) {
-    return xtos_ms;
-}
 
 void SysTick_Handler(void) {
-    static int counter = 0;
 
-    if ((counter++ % 1000) == 0) {
+    if ((xtos_ms++ % 1000) == 0) {
         xtos_schedule();
     }
 }

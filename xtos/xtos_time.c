@@ -2,6 +2,8 @@
 #include <xtos_time.h>
 #include <stm32f407.h>
 
+
+
 uint32 xtos_ms = 0;
 /*
 * xtos_get_time - 获取当前操作系统运行时间
@@ -52,6 +54,7 @@ void xtos_delay_ms(uint32 ms) {
     uint32 delta = xtos_ms - origin;
 
     while (delta < ms) {
+        xtos_schedule();
         delta = xtos_ms - origin;
     }
 }
@@ -62,6 +65,7 @@ void xtos_delay_us(uint32 us) {
 
     double delta = xtos_time_dis_us(&origin);
     while (delta < us) {
+        xtos_schedule();
         delta = xtos_time_dis_us(&origin);
     }
 
@@ -73,6 +77,7 @@ void xtos_delay_fms(double fms) {
 
     double delta = xtos_time_dis_fms(&origin);
     while (delta < fms) {
+        xtos_schedule();
         delta = xtos_time_dis_fms(&origin);
     }
 }

@@ -4,6 +4,18 @@
 
 extern uint32 xtos_ms;
 
+
+struct xtos_time {
+    uint32 ms;
+    uint32 us;
+};
+
+struct xtos_duration {
+    int32 ms;
+    int32 us;
+};
+
+
 void xtos_get_time(struct xtos_time *time);
 void xtos_time_diff(const struct xtos_time *src, const struct xtos_time *dst, struct xtos_duration *duration);
 int32 xtos_time_diff_us(const struct xtos_time *src, const struct xtos_time *dst);

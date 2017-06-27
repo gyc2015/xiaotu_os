@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <list.h>
+#include <xtos_time.h>
 
 /* Ã¿ºÁÃë¼ÆÊý */
 #define XTOS_TICK_PMS   168000
@@ -19,16 +20,6 @@ typedef struct xtos_task_descriptor {
     uint16 pid;
     struct list_head list;
 } xtos_task_desp_t;
-
-struct xtos_time {
-    uint32 ms;
-    uint32 us;
-};
-
-struct xtos_duration {
-    int32 ms;
-    int32 us;
-};
 
 void xtos_init(void);
 void xtos_start(void);

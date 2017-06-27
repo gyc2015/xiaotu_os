@@ -23,13 +23,18 @@ void taska() {
     while (1) {
         LED_1 = LED_ON;
         LED_2 = LED_OFF;
+        xtos_delay_ms(1000);
+        LED_1 = LED_OFF;
+        LED_2 = LED_ON;
+        xtos_delay_ms(1000);
     }
 }
 
 void taskb() {
     while (1) {
-        LED_1 = LED_OFF;
-        LED_2 = LED_ON;
+        
+        uart_send_str(USART3, "\r\n====================\r\n");
+        xtos_delay_ms(1000);
     }
 }
 

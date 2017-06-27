@@ -85,9 +85,11 @@
 #define MPU6050_FIFO_RESET  ((uint8)0x04)
 
 
+
+
 static uint16 mpu6050_read_uint16(struct mpu6050 *mpu, uint8 reg) {
     uint8 data[2];
-    I2C_ReceiveDatas(mpu->i2c, data, 4, mpu->addr, reg);
+    I2C_ReceiveDatas(mpu->i2c, data, 2, mpu->addr, reg);
     return (uint16)((uint16)data[0] << 8 | data[1]);
 }
 /*
@@ -122,6 +124,11 @@ uint8 mpu6050_init(struct mpu6050 *mpu) {
     // 中断引脚上拉、推挽、通过读INT_STATUS清除中断, 使能数据准备好中断
     I2C_SendByte(mpu->i2c, 0x22, mpu->addr, MPU6050_INT_PIN_CFG);
     I2C_SendByte(mpu->i2c, 0x01, mpu->addr, MPU6050_INT_ENABLE);
+
+    mpu->q[0] = 1.0f;
+    mpu->q[1] = 0.0f;
+    mpu->q[2] = 0.0f;
+    mpu->q[3] = 0.0f;
 
     return MPU6050_ERROR_NONE;
 }
@@ -197,7 +204,8 @@ void mpu6050_calibrate(struct mpu6050 *mpu) {
     I2C_SendByte(mpu->i2c, 0x78, mpu->addr, MPU6050_FIFO_EN);
     I2C_SendByte(mpu->i2c, 0x40, mpu->addr, MPU6050_USER_CTRL);
     // 延时一段时间,使得FIFO满,而后关闭FIFO开始校准
-    delay(6000);
+    delay(60000);
+
     I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_FIFO_EN);
     uint16 fcount = mpu6050_read_uint16(mpu, MPU6050_FIFO_COUNT);
     uint16 pcount = fcount / 12;
@@ -274,22 +282,86 @@ double mpu6050_set_acc_scale(struct mpu6050 *mpu, uint8 fsmacro) {
     return mpu->ares;
 }
 
-
-
-static uint16 getValue(struct mpu6050 *mpu, uint8 reg) {
-    union Data16 v;
-    I2C_ReceiveDatas(mpu->i2c, &v.byte[1], 1, mpu->addr, reg);
-    I2C_ReceiveDatas(mpu->i2c, &v.byte[0], 1, mpu->addr, reg + 1);
-    return v.half_word;
-}
-
 void mpu6050_readValue(struct mpu6050 *mpu) {
-    mpu->rvalue.ax = getValue(mpu, MPU6050_ACCEL_XOUT_H);
-    mpu->rvalue.ay = getValue(mpu, MPU6050_ACCEL_YOUT_H);
-    mpu->rvalue.az = getValue(mpu, MPU6050_ACCEL_ZOUT_H);
+    uint8 tmp[14];
+    I2C_ReceiveDatas(mpu->i2c, tmp, 14, mpu->addr, MPU6050_ACCEL_XOUT_H);
 
-    mpu->rvalue.gx = getValue(mpu, MPU6050_GYRO_XOUT_H);
-    mpu->rvalue.gy = getValue(mpu, MPU6050_GYRO_YOUT_H);
-    mpu->rvalue.gz = getValue(mpu, MPU6050_GYRO_ZOUT_H);
+    mpu->ivalue.ax = combine_bytes(tmp[0], tmp[1]);
+    mpu->ivalue.ay = combine_bytes(tmp[2], tmp[3]);
+    mpu->ivalue.az = combine_bytes(tmp[4], tmp[5]);
+    mpu->ivalue.gx = combine_bytes(tmp[8], tmp[9]);
+    mpu->ivalue.gy = combine_bytes(tmp[10], tmp[11]);
+    mpu->ivalue.gz = combine_bytes(tmp[12], tmp[13]);
+
+    mpu->fvalue.ax = mpu->ares * (float)mpu->ivalue.ax - mpu->bias.ax;
+    mpu->fvalue.ay = mpu->ares * (float)mpu->ivalue.ay - mpu->bias.ay;
+    mpu->fvalue.az = mpu->ares * (float)mpu->ivalue.az - mpu->bias.az;
+    mpu->fvalue.gx = mpu->gres * (float)mpu->ivalue.gx - mpu->bias.gx;
+    mpu->fvalue.gy = mpu->gres * (float)mpu->ivalue.gy - mpu->bias.gy;
+    mpu->fvalue.gz = mpu->gres * (float)mpu->ivalue.gz - mpu->bias.gz;
 }
+
+double beta = 0.0;
+double deltat = 1;
+void mpu6050_quaternion(struct mpu6050 *mpu) {
+    double q1 = mpu->q[0];
+    double q2 = mpu->q[1];
+    double q3 = mpu->q[2];
+    double q4 = mpu->q[3];
+
+    double _halfq1 = 0.5 * q1;
+    double _halfq2 = 0.5 * q2;
+    double _halfq3 = 0.5 * q3;
+    double _halfq4 = 0.5 * q4;
+
+    double _2q1 = 2.0 * q1;
+    double _2q2 = 2.0 * q2;
+    double _2q3 = 2.0 * q3;
+    double _2q4 = 2.0 * q4;
+
+    double norm = sqrt(mpu->fvalue.ax * mpu->fvalue.ax + mpu->fvalue.ay * mpu->fvalue.ay + mpu->fvalue.az * mpu->fvalue.az);
+    double ax = mpu->fvalue.ax / norm;
+    double ay = mpu->fvalue.ay / norm;
+    double az = mpu->fvalue.az / norm;
+
+    double f1 = _2q2 * q4 - _2q1 * q3 - ax;
+    double f2 = _2q1 * q2 + _2q3 * q4 - ay;
+    double f3 = 1.0f - _2q2 * q2 - _2q3 * q3 - az;
+    // Compute the objective function and Jacobian
+    double J_11or24 = _2q3;
+    double J_12or23 = _2q4;
+    double J_13or22 = _2q1;
+    double J_14or21 = _2q2;
+    double J_32 = 2.0f * J_14or21;
+    double J_33 = 2.0f * J_11or24;
+    // Compute the gradient (matrix multiplication)
+    double hatDot1 = J_14or21 * f2 - J_11or24 * f1;
+    double hatDot2 = J_12or23 * f1 + J_13or22 * f2 - J_32 * f3;
+    double hatDot3 = J_12or23 * f2 - J_33 *f3 - J_13or22 * f1;
+    double hatDot4 = J_14or21 * f1 + J_11or24 * f2;
+    // Normalize the gradient
+    norm = sqrt(hatDot1 * hatDot1 + hatDot2 * hatDot2 + hatDot3 * hatDot3 + hatDot4 * hatDot4);
+    hatDot1 /= norm;
+    hatDot2 /= norm;
+    hatDot3 /= norm;
+    hatDot4 /= norm;
+    // Compute the quaternion derivative
+    double qDot1 = -_halfq2 * mpu->fvalue.gx - _halfq3 * mpu->fvalue.gy - _halfq4 * mpu->fvalue.gz;
+    double qDot2 = _halfq1 * mpu->fvalue.gx + _halfq3 * mpu->fvalue.gz - _halfq4 * mpu->fvalue.gy;
+    double qDot3 = _halfq1 * mpu->fvalue.gy - _halfq2 * mpu->fvalue.gz + _halfq4 * mpu->fvalue.gx;
+    double qDot4 = _halfq1 * mpu->fvalue.gz + _halfq2 * mpu->fvalue.gy - _halfq3 * mpu->fvalue.gx;
+    q1 += (qDot1 - (beta * hatDot1)) * deltat;
+    q2 += (qDot2 - (beta * hatDot2)) * deltat;
+    q3 += (qDot3 - (beta * hatDot3)) * deltat;
+    q4 += (qDot4 - (beta * hatDot4)) * deltat;
+    // normalise quaternion
+    norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);
+    norm = 1.0f / norm;
+    mpu->q[0] = q1 * norm;
+    mpu->q[1] = q2 * norm;
+    mpu->q[2] = q3 * norm;
+    mpu->q[3] = q4 * norm;
+}
+
+
 

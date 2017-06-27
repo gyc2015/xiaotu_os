@@ -45,10 +45,12 @@ struct mpu_double {
 struct mpu6050 {
     uint8 addr;
     uint8 error;
-    struct mpu_int16 rvalue;
+    struct mpu_int16 ivalue;
+    struct mpu_double fvalue;
     struct mpu_double bias;
     double gres; // 陀螺仪分辨率
     double ares; // 加速度计分辨率
+    double q[4]; // 四元数
     i2c_dev *i2c;
 };
 /*

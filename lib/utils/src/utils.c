@@ -24,6 +24,13 @@ uint16 change_ending_16b(uint16 data) {
     return out.half_word;
 }
 
+uint16 combine_bytes(uint8 h, uint8 l) {
+    union Data16 out;
+    out.byte[1] = h;
+    out.byte[0] = l;
+    return out.half_word;
+}
+
 void delay(int n) {
     int i;
     for (i = 0; i < n; i++);

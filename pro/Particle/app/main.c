@@ -103,8 +103,7 @@ static i2c_dev gI2C = {
 
 static struct mpu6050 gMpu6050 = {
     .addr = 0xD0,
-    .i2c = &gI2C,
-    .rvalue = { 0 }
+    .i2c = &gI2C
 };
 
 /*******************************************************************************/
@@ -127,7 +126,7 @@ int main(void) {
 
     LED_0 = LED_ON;
 
-    if (0x68 == readbuf[0])
+    if (MPU6050_ERROR_NONE == readbuf[0])
         uart_send_str(USART3, "\r\n====================\r\n");
 
     //eeprom_write_bytes(txBuf, 10, 0);

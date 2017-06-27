@@ -77,7 +77,7 @@ void eeprom_write_bytes(const uint8 *buf, uint8 len, uint8 reg) {
     for (int i = 0; i < len; i++) {
         I2C_SendByte(&gI2C1, buf[i], EEPROM_ADDR, i);
         for (int j = 0; j < 10; j++)
-            Delay(6000);
+            delay(6000);
     }
 }
 

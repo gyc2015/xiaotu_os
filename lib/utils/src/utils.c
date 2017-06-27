@@ -24,7 +24,7 @@ uint16 change_ending_16b(uint16 data) {
     return out.half_word;
 }
 
-void Delay(int n) {
+void delay(int n) {
     int i;
     for (i = 0; i < n; i++);
 }

@@ -4,20 +4,33 @@
 #include <types.h>
 #include <list.h>
 
+/* 每毫秒计数 */
+#define XTOS_TICK_PMS   168000
+
 // xtos任务入口
 typedef void(*xtos_task)(void);
 
 /*
  * xtos_task_struct - 任务描述符
  */
-struct xtos_task_descriptor {
+typedef struct xtos_task_descriptor {
     uint32 *pTopOfStack;    /* 栈顶地址，该位段不可以更改 */
     uint32 *pBottomOfStack;   /* 栈底地址 */
     uint16 pid;
     struct list_head list;
+} xtos_task_desp_t;
+
+struct xtos_time {
+    uint32 ms;
+    uint32 us;
 };
 
-void xtos_init(uint32 ticks);
+struct xtos_duration {
+    int32 ms;
+    int32 us;
+};
+
+void xtos_init(void);
 void xtos_start(void);
 void xtos_schedule(void);
 
@@ -32,6 +45,5 @@ void xtos_schedule(void);
 void xtos_init_task_struct(struct xtos_task_descriptor *tcb, xtos_task task, uint32 *stk_bottom, uint16 pid);
 void xtos_distroy_task(void);
 
-uint32 xtos_get_ms(void);
 
 #endif // !XTOS_H

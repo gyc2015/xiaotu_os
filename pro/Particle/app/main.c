@@ -148,7 +148,7 @@ int main(void) {
     uart_send_bytes(USART3, readbuf, 1024);
 
 
-    xtos_init(168000);
+    xtos_init();
     xtos_init_task_struct(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
     xtos_init_task_struct(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);
     xtos_start();

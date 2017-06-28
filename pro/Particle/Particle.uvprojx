@@ -557,6 +557,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\driver\mpu6050.c</FilePath>
             </File>
+            <File>
+              <FileName>system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\system.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

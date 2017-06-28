@@ -5,8 +5,12 @@
 #include <list.h>
 #include <xtos_time.h>
 
-/* 每毫秒计数 */
-#define XTOS_TICK_PMS   168000
+
+#define XTOS_OFF    0
+#define XTOS_STATED 1
+
+extern uint8 xtos_state;
+
 
 // xtos任务入口
 typedef void(*xtos_task)(void);

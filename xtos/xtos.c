@@ -2,12 +2,12 @@
 #include <xtos_time.h>
 #include <stm32f407.h>
 
+uint8 xtos_state = XTOS_OFF;
+
 struct xtos_task_descriptor *gp_xtos_cur_task;
 struct xtos_task_descriptor *gp_xtos_next_task;
 
 struct list_head L0_tasks;
-
-#define SysTicks_Irq_n 15
 
 void xtos_first_switch(void);
 void xtos_context_switch(void);
@@ -20,15 +20,6 @@ void xtos_pendsv_handler(void);
  */
 void xtos_init() {
     init_list_head(&L0_tasks);
-
-    SYSTICK->LOAD.bits.cnt = XTOS_TICK_PMS; // 重装载数据
-    SYSTICK->VAL.bits.cnt = 0;              // 清除当前计数
-
-    SCB->SHP[SysTicks_Irq_n - 4] = 0x00;    // 暂时赋予最高优先级
-
-    SYSTICK->CTRL.bits.clksource = 1;       // 使用CPU时钟168MHz
-    SYSTICK->CTRL.bits.tickint = 1;         // 开启计数溢出中断
-    SYSTICK->CTRL.bits.en = 0;              // 暂不开启计时器
 }
 /*
  * xtos_task_finished - 任务结束后的回调函数
@@ -134,19 +125,16 @@ void xtos_schedule(void) {
  * xtos_start - 开启操作系统
  */
 void xtos_start(void) {
+    __asm("CPSID	I");
+
     gp_xtos_next_task = list_first_entry(&L0_tasks, struct xtos_task_descriptor, list);
 
     list_del(&gp_xtos_next_task->list);
 
-    SYSTICK->CTRL.bits.en = 1;
+    xtos_state = XTOS_STATED;
     xtos_first_switch();
-}
 
-
-void SysTick_Handler(void) {
-    xtos_ms++;
-
-    xtos_schedule();
+    __asm("CPSIE   I");
 }
 
 

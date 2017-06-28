@@ -1,4 +1,5 @@
 #include <mpu6050.h>
+#include <system.h>
 #include <utils.h>
 #include <stm32f407_rcc.h>
 #include <math.h>
@@ -85,13 +86,12 @@
 #define MPU6050_FIFO_RESET  ((uint8)0x04)
 
 
-
-
-static uint16 mpu6050_read_uint16(struct mpu6050 *mpu, uint8 reg) {
-    uint8 data[2];
-    I2C_ReceiveDatas(mpu->i2c, data, 2, mpu->addr, reg);
-    return (uint16)((uint16)data[0] << 8 | data[1]);
+uint8 mpu6050_read_uint8(struct mpu6050 *mpu, uint8 reg) {
+    uint8 data;
+    I2C_ReceiveDatas(mpu->i2c, &data, 1, mpu->addr, reg);
+    return data;
 }
+
 /*
  * mpu6050_init - 初始化
  *
@@ -107,8 +107,7 @@ uint8 mpu6050_init(struct mpu6050 *mpu) {
     // 上电自检
     if (!mpu6050_self_test(mpu))
         return MPU6050_ERROR_SELF_TEST_FAILED;
-    // 校准
-    mpu6050_calibrate(mpu);
+
     // 电源时钟管理，用陀螺仪的X轴作为时钟源
     I2C_SendByte(mpu->i2c, MPU6050_CLK_GX, mpu->addr, MPU6050_PWR_MGMT_1);
     I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_PWR_MGMT_2);
@@ -120,7 +119,7 @@ uint8 mpu6050_init(struct mpu6050 *mpu) {
     I2C_SendByte(mpu->i2c, 0x04, mpu->addr, MPU6050_SMPLRT_DIV);
     // 量程 Gyroscope: ±250 deg/s, Accelerometer: ±4g
     mpu6050_set_gyro_scale(mpu, MPU6050_FSR_250DPS);
-    mpu6050_set_gyro_scale(mpu, MPU6050_FSR_4G);
+    mpu6050_set_acc_scale(mpu, MPU6050_FSR_4G);
     // 中断引脚上拉、推挽、通过读INT_STATUS清除中断, 使能数据准备好中断
     I2C_SendByte(mpu->i2c, 0x22, mpu->addr, MPU6050_INT_PIN_CFG);
     I2C_SendByte(mpu->i2c, 0x01, mpu->addr, MPU6050_INT_ENABLE);
@@ -129,6 +128,9 @@ uint8 mpu6050_init(struct mpu6050 *mpu) {
     mpu->q[1] = 0.0f;
     mpu->q[2] = 0.0f;
     mpu->q[3] = 0.0f;
+
+    // 校准
+    mpu6050_calibrate(mpu);
 
     return MPU6050_ERROR_NONE;
 }
@@ -173,58 +175,13 @@ bool mpu6050_self_test(struct mpu6050 *mpu) {
  *
  * @mpu: 目标传感器
  */
+#define CALIBTIMES 100
+uint8 testdata, testdata1;
 void mpu6050_calibrate(struct mpu6050 *mpu) {
     double *pbias = &(mpu->bias.ax);
     for (uint16 i = 0; i < 6; i++)
         pbias[i] = 0.0;
 
-    // 重置
-    I2C_SendByte(mpu->i2c, 0x80, mpu->addr, MPU6050_PWR_MGMT_1);
-    delay(6000);
-    // 电源时钟管理，用陀螺仪的X轴作为时钟源
-    I2C_SendByte(mpu->i2c, MPU6050_CLK_GX, mpu->addr, MPU6050_PWR_MGMT_1);
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_PWR_MGMT_2);
-    delay(6000);
-    // 关闭所有中断,FIFO,I2C Master
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_INT_ENABLE);
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_FIFO_EN);
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_I2C_MST_CTRL);
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_USER_CTRL);
-    // 188Hz低通滤波, 1kHz采样
-    // Sample Rate = Gyroscope Output Rate / 1 + SMPLRT_DIV
-    // Gyroscope Output Rate = (CONFIG.DLPF == 0) ? 8kHz : 1kHz
-    I2C_SendByte(mpu->i2c, MPU6050_GYRO_DLPF_188, mpu->addr, MPU6050_CONFIG);
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_SMPLRT_DIV);
-    // 配置最小量程,提高灵敏度
-    mpu6050_set_gyro_scale(mpu, MPU6050_FSR_250DPS);
-    mpu6050_set_gyro_scale(mpu, MPU6050_FSR_2G);
-    // 复位FIFO并打开
-    I2C_SendByte(mpu->i2c, MPU6050_FIFO_RESET, mpu->addr, MPU6050_USER_CTRL);
-    delay(1000);
-    I2C_SendByte(mpu->i2c, 0x78, mpu->addr, MPU6050_FIFO_EN);
-    I2C_SendByte(mpu->i2c, 0x40, mpu->addr, MPU6050_USER_CTRL);
-    // 延时一段时间,使得FIFO满,而后关闭FIFO开始校准
-    delay(60000);
-
-    I2C_SendByte(mpu->i2c, 0x00, mpu->addr, MPU6050_FIFO_EN);
-    uint16 fcount = mpu6050_read_uint16(mpu, MPU6050_FIFO_COUNT);
-    uint16 pcount = fcount / 12;
-    struct mpu_int16 rawdata;
-    for (uint16 i = 0; i < pcount; i++) {
-        I2C_ReceiveDatas(mpu->i2c, (uint8*)&(rawdata.ax), 12, mpu->addr, MPU6050_FIFO_R_W);
-        mpu->bias.ax += (int16)change_ending_16b(rawdata.ax);
-        mpu->bias.ay += (int16)change_ending_16b(rawdata.ay);
-        mpu->bias.az += (int16)change_ending_16b(rawdata.az);
-        mpu->bias.gx += (int16)change_ending_16b(rawdata.gx);
-        mpu->bias.gy += (int16)change_ending_16b(rawdata.gy);
-        mpu->bias.gz += (int16)change_ending_16b(rawdata.gz);
-    }
-    mpu->bias.ax = mpu->bias.ax * mpu->ares / pcount;
-    mpu->bias.ay = mpu->bias.ay * mpu->ares / pcount;
-    mpu->bias.az = mpu->bias.az * mpu->ares / pcount;
-    mpu->bias.gx = mpu->bias.gx * mpu->gres / pcount;
-    mpu->bias.gy = mpu->bias.gy * mpu->gres / pcount;
-    mpu->bias.gz = mpu->bias.gz * mpu->gres / pcount;
 }
 
 /*
@@ -261,7 +218,7 @@ double mpu6050_set_gyro_scale(struct mpu6050 *mpu, uint8 fsmacro) {
  * @fsmacro: 量程宏定义
  */
 double mpu6050_set_acc_scale(struct mpu6050 *mpu, uint8 fsmacro) {
-    I2C_SendByte(mpu->i2c, fsmacro, mpu->addr, MPU6050_GYRO_CONFIG);
+    I2C_SendByte(mpu->i2c, fsmacro, mpu->addr, MPU6050_ACCEL_CONFIG);
     switch (fsmacro) {
     case MPU6050_FSR_2G:
         mpu->ares = 2.0 / 32768.0;
@@ -286,12 +243,12 @@ void mpu6050_readValue(struct mpu6050 *mpu) {
     uint8 tmp[14];
     I2C_ReceiveDatas(mpu->i2c, tmp, 14, mpu->addr, MPU6050_ACCEL_XOUT_H);
 
-    mpu->ivalue.ax = combine_bytes(tmp[0], tmp[1]);
-    mpu->ivalue.ay = combine_bytes(tmp[2], tmp[3]);
-    mpu->ivalue.az = combine_bytes(tmp[4], tmp[5]);
-    mpu->ivalue.gx = combine_bytes(tmp[8], tmp[9]);
-    mpu->ivalue.gy = combine_bytes(tmp[10], tmp[11]);
-    mpu->ivalue.gz = combine_bytes(tmp[12], tmp[13]);
+    mpu->ivalue.ax = (int16)(((int16)tmp[0] << 8) | tmp[1]);
+    mpu->ivalue.ay = (int16)(((int16)tmp[2] << 8) | tmp[3]);
+    mpu->ivalue.az = (int16)(((int16)tmp[4] << 8) | tmp[5]);
+    mpu->ivalue.gx = (int16)(((int16)tmp[8] << 8) | tmp[9]);
+    mpu->ivalue.gy = (int16)(((int16)tmp[10] << 8) | tmp[11]);
+    mpu->ivalue.gz = (int16)(((int16)tmp[12] << 8) | tmp[13]);
 
     mpu->fvalue.ax = mpu->ares * (float)mpu->ivalue.ax - mpu->bias.ax;
     mpu->fvalue.ay = mpu->ares * (float)mpu->ivalue.ay - mpu->bias.ay;

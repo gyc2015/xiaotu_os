@@ -1,5 +1,4 @@
-#ifndef CORTEX_M4_SYSTICK_H
-#define CORTEX_M4_SYSTICK_H
+#pragma once
 
 #include <types.h>
 
@@ -53,5 +52,7 @@ typedef struct systick_regs {
 #define SYSTICK ((systick_regs_t *) SYSTICK_BASE)
 
 
-#endif // !CORTEX_M4_SYSTICK_H
+
+
+
 

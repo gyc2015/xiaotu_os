@@ -53,6 +53,8 @@ struct mpu6050 {
     double q[4]; // 四元数
     i2c_dev *i2c;
 };
+
+uint8 mpu6050_read_uint8(struct mpu6050 *mpu, uint8 reg);
 /*
  * mpu6050_init - 初始化
  *

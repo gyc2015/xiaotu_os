@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc;..\..\lib\eMPL\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc;..\..\lib\eMPL\inc;..\..\lib\FatFs\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -561,6 +561,21 @@
               <FileName>system.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\system.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>libFatFs</GroupName>
+          <Files>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\FatFs\src\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\FatFs\src\ff.c</FilePath>
             </File>
           </Files>
         </Group>

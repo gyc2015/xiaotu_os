@@ -20,6 +20,15 @@ struct mpu_int16 {
     int16 gz;
 };
 
+struct mpu_int32 {
+    int32 ax;
+    int32 ay;
+    int32 az;
+    int32 gx;
+    int32 gy;
+    int32 gz;
+};
+
 struct mpu_float {
     float ax;
     float ay;
@@ -88,4 +97,7 @@ double mpu6050_set_gyro_scale(struct mpu6050 *mpu, uint8 fsmacro);
  */
 double mpu6050_set_acc_scale(struct mpu6050 *mpu, uint8 fsmacro);
 
-void mpu6050_readValue(struct mpu6050 *mpu);
+void mpu6050_read_value(struct mpu6050 *mpu, struct mpu_int16 *ivalue);
+void mpu6050_update(struct mpu6050 *mpu);
+
+

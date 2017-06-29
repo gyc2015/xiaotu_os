@@ -32,10 +32,6 @@ static bool i2c_sda(void) {
     return (1 == PGin(4)) ? TRUE : FALSE;
 }
 
-static void i2c_set_scl_out(void) {
-    GPIOG->MODER.bits.pin3 = GPIO_Mode_Out;
-}
-
 static void i2c_set_sda_out(void) {
     GPIOG->MODER.bits.pin4 = GPIO_Mode_Out;
 }
@@ -58,8 +54,8 @@ static void i2c_init(void) {
     GPIOG->PUPDR.bits.pin3 = GPIO_Pull_Up;
     GPIOG->PUPDR.bits.pin4 = GPIO_Pull_Up;
 
-    GPIOG->OSPEEDR.bits.pin3 = GPIO_OSpeed_Very_High;
-    GPIOG->OSPEEDR.bits.pin4 = GPIO_OSpeed_Very_High;
+    GPIOG->OSPEEDR.bits.pin3 = GPIO_OSpeed_High;
+    GPIOG->OSPEEDR.bits.pin4 = GPIO_OSpeed_High;
 
     i2c_sda_h();
     i2c_scl_h();
@@ -71,10 +67,10 @@ static i2c_dev gI2C = {
     .sda_h = i2c_sda_h,
     .sda_l = i2c_sda_l,
     .sda = i2c_sda,
-    .set_scl_out = i2c_set_scl_out,
     .set_sda_out = i2c_set_sda_out,
     .set_sda_in = i2c_set_sda_in,
-    .init = i2c_init
+    .init = i2c_init,
+    .delayus = 20
 };
 
 static struct mpu6050 gMpu6050 = {
@@ -83,7 +79,6 @@ static struct mpu6050 gMpu6050 = {
 };
 
 /*******************************************************************************/
-
 #define TASKA_STK_SIZE 1024
 #define TASKB_STK_SIZE 1024
 static uint32 taskA_Stk[TASKA_STK_SIZE];
@@ -100,14 +95,12 @@ void taska() {
         xtos_delay_ms(1000);
     }
 }
-
 void taskb() {
-    uint8 data,data1;
+    uint8 data;
     while (1) {
         data = mpu6050_read_uint8(&gMpu6050, 0x3A);
-        data1 = mpu6050_read_uint8(&gMpu6050, 0x3A);
         if (data & 0x01) {
-            mpu6050_readValue(&gMpu6050);
+            mpu6050_update(&gMpu6050);
             LED_0 = LED_ON;
         } else {
             LED_0 = LED_OFF;
@@ -122,31 +115,27 @@ uint8 txBuf[10] = { 'A', 'b', 'C', 'd', 'E', 'f', 'G', 'h', 'I', 'j' };
 uint8 rxBuf[10] = { 0,1,2,3,4,5,6,7,8,9 };
 
 struct sd_card card;
-uint8 readbuf[1024];
 
 int main(void) {
     sys_init();
-
     led_init();
     usart3_init(115200);
-    eeprom_init();
-    readbuf[0] = mpu6050_init(&gMpu6050);
-    
     config_interruts();
 
     LED_2 = LED_ON;
+    sys_delay_ms(1000);
 
-
-    if (MPU6050_ERROR_NONE == readbuf[0])
-        uart_send_str(USART3, "\r\n====================\r\n");
-
+    if (MPU6050_ERROR_NONE != mpu6050_init(&gMpu6050)) {
+        LED_2 = LED_OFF;
+        uart_send_str(USART3, "MPU6050≥ı ºªØ¥ÌŒÛ!\r\n");
+        while (1);
+    }
     
     xtos_init();
     xtos_init_task_struct(&taskA, taska, &taskA_Stk[TASKA_STK_SIZE - 1], 0);
     xtos_init_task_struct(&taskB, taskb, &taskB_Stk[TASKB_STK_SIZE - 1], 1);
     xtos_start();
     
-
     while(1) {
 
     }

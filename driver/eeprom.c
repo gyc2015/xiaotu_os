@@ -22,10 +22,6 @@ static bool i2c1_sda(void) {
     return (1 == PBin(9)) ? TRUE : FALSE;
 }
 
-static void i2c1_set_scl_out(void) {
-    GPIOB->MODER.bits.pin8 = GPIO_Mode_Out;
-}
-
 static void i2c1_set_sda_out(void) {
     GPIOB->MODER.bits.pin9 = GPIO_Mode_Out;
 }
@@ -61,10 +57,10 @@ static i2c_dev gI2C1 = {
     .sda_h = i2c1_sda_h,
     .sda_l = i2c1_sda_l,
     .sda = i2c1_sda,
-    .set_scl_out = i2c1_set_scl_out,
     .set_sda_out = i2c1_set_sda_out,
     .set_sda_in = i2c1_set_sda_in,
-    .init = i2c1_init
+    .init = i2c1_init,
+    .delayus = 200
 };
 
 #define EEPROM_ADDR 0xA0

@@ -1,4 +1,5 @@
 #include <fakei2c.h>
+#include <system.h>
 
 /* 发送/接收模式 */
 #define I2C_DIRECTION_TX    ((uint8)0x00)
@@ -7,9 +8,8 @@
 /*
  * _I2C_Delay - I2C延时函数
  */
-static void _I2C_Delay(void) {
-    int i;
-    for (i = 0; i < 200; i++);
+static void _I2C_Delay(uint16 us) {
+    sys_delay_us(us);
 }
 /*
 * I2C_Start - 发送起始信号
@@ -18,24 +18,24 @@ static void _I2C_Start(i2c_dev *dev) {
     dev->sda_h();
     dev->scl_h();
 
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->sda_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->scl_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
 }
 /*
 * I2C_Stop - 发送终止信号
 */
 static void _I2C_Stop(i2c_dev *dev) {
     dev->scl_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->sda_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->scl_h();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->sda_h();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
 }
 /*
 * I2C_SendACK - 发送应答
@@ -44,13 +44,13 @@ static void _I2C_Stop(i2c_dev *dev) {
 */
 static void _I2C_SendACK(i2c_dev *dev, uint8 ack) {
     dev->scl_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     (0 == ack) ? dev->sda_l() : dev->sda_h();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->scl_h();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     dev->scl_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
 }
 
 #define _ACK_     0
@@ -64,17 +64,17 @@ static void _I2C_SendACK(i2c_dev *dev, uint8 ack) {
 static uint8 _I2C_WaitAck(i2c_dev *dev) {
     uint8 re;
     dev->scl_l();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
 
     dev->set_sda_in();
 
     dev->scl_h();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     re = (dev->sda()) ? 1 : 0;
     dev->scl_l();
 
     dev->set_sda_out();
-    _I2C_Delay();
+    _I2C_Delay(dev->delayus);
     return re;
 }
 
@@ -88,12 +88,12 @@ static void _I2C_WriteByte(i2c_dev *dev, uint8 data) {
     while (i--) {
         dev->scl_l();
 
-        _I2C_Delay();
+        _I2C_Delay(dev->delayus);
         (data & 0x80) ? dev->sda_h() : dev->sda_l();
         data <<= 1;
-        _I2C_Delay();
+        _I2C_Delay(dev->delayus);
         dev->scl_h();
-        _I2C_Delay();
+        _I2C_Delay(dev->delayus);
     }
     dev->scl_l();
     _I2C_WaitAck(dev);
@@ -113,9 +113,9 @@ static uint8 _I2C_ReadByte(i2c_dev *dev) {
     while (i--) {
         re <<= 1;
         dev->scl_l();
-        _I2C_Delay();
+        _I2C_Delay(dev->delayus);
         dev->scl_h();
-        _I2C_Delay();
+        _I2C_Delay(dev->delayus);
         if (dev->sda())
             re |= 0x01;
     }

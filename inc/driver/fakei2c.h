@@ -8,10 +8,10 @@ typedef struct {
     void(*sda_h)(void);
     void(*sda_l)(void);
     bool(*sda)(void);
-    void(*set_scl_out)(void);
     void(*set_sda_out)(void);
     void(*set_sda_in)(void);
     void(*init)(void);
+    uint16 delayus;
 } i2c_dev;
 
 

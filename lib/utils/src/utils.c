@@ -31,8 +31,17 @@ uint16 combine_bytes(uint8 h, uint8 l) {
     return out.half_word;
 }
 
+void swap_double(double *a, double *b) {
+    double tmp = a[0];
+    a[0] = b[0];
+    b[0] = tmp;
+}
+
+
 void delay(int n) {
     int i;
     for (i = 0; i < n; i++);
 }
+
+
 

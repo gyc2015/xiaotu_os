@@ -85,6 +85,7 @@
 
 #define MPU6050_FIFO_RESET  ((uint8)0x04)
 
+#define MPU6050_ADC_TOTAL   32768.0
 
 uint8 mpu6050_read_uint8(struct mpu6050 *mpu, uint8 reg) {
     uint8 data;
@@ -123,12 +124,6 @@ uint8 mpu6050_init(struct mpu6050 *mpu) {
     // 中断引脚上拉、推挽、通过读INT_STATUS清除中断, 使能数据准备好中断
     I2C_SendByte(mpu->i2c, 0x22, mpu->addr, MPU6050_INT_PIN_CFG);
     I2C_SendByte(mpu->i2c, 0x01, mpu->addr, MPU6050_INT_ENABLE);
-
-    mpu->q[0] = 1.0f;
-    mpu->q[1] = 0.0f;
-    mpu->q[2] = 0.0f;
-    mpu->q[3] = 0.0f;
-
     // 校准
     mpu6050_calibrate(mpu);
 
@@ -146,7 +141,7 @@ bool mpu6050_self_test(struct mpu6050 *mpu) {
     delay(6000);
 
     uint8 rawData[4] = { 0, 0, 0, 0 };
-    struct mpu_uint8 st;
+    struct imu_6x_uint8 st;
     I2C_ReceiveDatas(mpu->i2c, &rawData[0], 4, mpu->addr, MPU6050_SELF_TEST_X);
     st.ax = (rawData[0] >> 3) | (rawData[3] & 0x30) >> 4;
     st.ay = (rawData[1] >> 3) | (rawData[3] & 0x0C) >> 2;
@@ -154,7 +149,7 @@ bool mpu6050_self_test(struct mpu6050 *mpu) {
     st.gx = rawData[0] & 0x1F;
     st.gy = rawData[1] & 0x1F;
     st.gz = rawData[2] & 0x1F;
-    struct mpu_float ft;
+    struct imu_6x_float ft;
     ft.ax = (4096.0f*0.34f)*(pow((0.92f / 0.34f), ((st.ax - 1.0f) / 30.0f)));
     ft.ay = (4096.0f*0.34f)*(pow((0.92f / 0.34f), ((st.ay - 1.0f) / 30.0f)));
     ft.az = (4096.0f*0.34f)*(pow((0.92f / 0.34f), ((st.az - 1.0f) / 30.0f)));
@@ -176,8 +171,9 @@ bool mpu6050_self_test(struct mpu6050 *mpu) {
  * @mpu: 目标传感器
  */
 #define CALIBTIMES 100
+#define HAS_GRAVITY 0
 void mpu6050_calibrate(struct mpu6050 *mpu) {
-    struct mpu_int32 sum = { 0, 0, 0, 0, 0, 0 };
+    struct imu_6x_int32 sum = { 0, 0, 0, 0, 0, 0 };
 
     for (int i = 0; i < CALIBTIMES; i++) {
         while (!(mpu6050_read_uint8(mpu, 0x3A) & 0x01));
@@ -195,6 +191,9 @@ void mpu6050_calibrate(struct mpu6050 *mpu) {
     mpu->bias.gx = mpu->gres * (double)(sum.gx) / CALIBTIMES;
     mpu->bias.gy = mpu->gres * (double)(sum.gy) / CALIBTIMES;
     mpu->bias.gz = mpu->gres * (double)(sum.gz) / CALIBTIMES;
+#if HAS_GRAVITY
+    mpu->bias.az -= mpu->ares * MPU6050_ADC_TOTAL;
+#endif
 }
 
 /*
@@ -207,16 +206,16 @@ double mpu6050_set_gyro_scale(struct mpu6050 *mpu, uint8 fsmacro) {
     I2C_SendByte(mpu->i2c, fsmacro, mpu->addr, MPU6050_GYRO_CONFIG);
     switch (fsmacro) {
     case MPU6050_FSR_250DPS:
-        mpu->gres = 250.0 / 32768.0;
+        mpu->gres = 250.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_500DPS:
-        mpu->gres = 500.0 / 32768.0;
+        mpu->gres = 500.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_1000DPS:
-        mpu->gres = 1000.0 / 32768.0;
+        mpu->gres = 1000.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_2000DPS:
-        mpu->gres = 2000.0 / 32768.0;
+        mpu->gres = 2000.0 / MPU6050_ADC_TOTAL;
         break;
     default:
         mpu->gres = 0;
@@ -234,16 +233,16 @@ double mpu6050_set_acc_scale(struct mpu6050 *mpu, uint8 fsmacro) {
     I2C_SendByte(mpu->i2c, fsmacro, mpu->addr, MPU6050_ACCEL_CONFIG);
     switch (fsmacro) {
     case MPU6050_FSR_2G:
-        mpu->ares = 2.0 / 32768.0;
+        mpu->ares = 2.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_4G:
-        mpu->ares = 4.0 / 32768.0;
+        mpu->ares = 4.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_8G:
-        mpu->ares = 8.0 / 32768.0;
+        mpu->ares = 8.0 / MPU6050_ADC_TOTAL;
         break;
     case MPU6050_FSR_16G:
-        mpu->ares = 16.0 / 32768.0;
+        mpu->ares = 16.0 / MPU6050_ADC_TOTAL;
         break;
     default:
         mpu->ares = 0;
@@ -257,7 +256,7 @@ double mpu6050_set_acc_scale(struct mpu6050 *mpu, uint8 fsmacro) {
  * @mpu: 目标传感器
  * @ivalue: 传感器读数
  */
-void mpu6050_read_value(struct mpu6050 *mpu, struct mpu_int16 *ivalue) {
+void mpu6050_read_value(struct mpu6050 *mpu, struct imu_6x_int16 *ivalue) {
     uint8 tmp[14];
     I2C_ReceiveDatas(mpu->i2c, tmp, 14, mpu->addr, MPU6050_ACCEL_XOUT_H);
 

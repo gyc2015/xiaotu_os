@@ -369,7 +369,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc;..\..\lib\eMPL\inc</IncludePath>
+              <IncludePath>..\..\inc;..\..\inc\xtos;..\..\inc\driver;..\..\lib\stm32\inc;..\..\lib\cmsis\inc;..\..\lib\utils\inc;..\..\lib\eMPL\inc;..\..\lib\imu\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -553,14 +553,19 @@
               <FilePath>..\..\driver\eeprom.c</FilePath>
             </File>
             <File>
-              <FileName>mpu6050.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\mpu6050.c</FilePath>
-            </File>
-            <File>
               <FileName>system.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\system.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>libimu</GroupName>
+          <Files>
+            <File>
+              <FileName>mpu6050.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\lib\imu\src\mpu6050.c</FilePath>
             </File>
           </Files>
         </Group>

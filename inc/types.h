@@ -55,7 +55,7 @@ union Data16 {
  */
 #define offsetof(type, member) ((unsigned long) &((type *)0)->member)
 /*
- * container_of - 求取某一指针所在结构体的地址
+ * container_of - 根据成员地址@ptr和结构体类型，求取所在结构体的地址
  *
  * @ptr: 结构体成员指针
  * @type: 结构体类型

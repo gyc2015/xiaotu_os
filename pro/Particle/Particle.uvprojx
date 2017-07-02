@@ -493,6 +493,11 @@
           <GroupName>xtos</GroupName>
           <Files>
             <File>
+              <FileName>system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\driver\system.c</FilePath>
+            </File>
+            <File>
               <FileName>xtos.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\xtos\xtos.c</FilePath>
@@ -516,56 +521,6 @@
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\driver\led.c</FilePath>
-            </File>
-            <File>
-              <FileName>iwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\iwdg.c</FilePath>
-            </File>
-            <File>
-              <FileName>wwdg.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\wwdg.c</FilePath>
-            </File>
-            <File>
-              <FileName>sdio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\sdio.c</FilePath>
-            </File>
-            <File>
-              <FileName>power.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\power.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>fakei2c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\fakei2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>eeprom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\eeprom.c</FilePath>
-            </File>
-            <File>
-              <FileName>system.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\driver\system.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>libimu</GroupName>
-          <Files>
-            <File>
-              <FileName>mpu6050.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\lib\imu\src\mpu6050.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -97,7 +97,7 @@ static uint32* xtos_create_task(struct xtos_task_descriptor * tcb, xtos_task tas
  * @stk_bottom: 任务栈底
  * @pid: 任务id
  */
-void xtos_init_task_struct(struct xtos_task_descriptor *tcb, xtos_task task, uint32 *stk_bottom, uint16 pid) {
+void xtos_init_task_descriptor(struct xtos_task_descriptor *tcb, xtos_task task, uint32 *stk_bottom, uint16 pid) {
     tcb->pBottomOfStack = stk_bottom;
     tcb->pTopOfStack = xtos_create_task(tcb, task, stk_bottom);
     tcb->pid = pid;

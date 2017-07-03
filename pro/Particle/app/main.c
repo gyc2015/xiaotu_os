@@ -154,8 +154,10 @@ int main(void) {
 
     uart_send_str(USART3,"\r\n====\r\n");
 
-    for (int i = 0; i < 1024; i++)
+    for (int i = 0; i < 1024; i++) {
         uart_send_byte(USART3, readbuf[i]);
+        readbuf[i] = 'A';
+    }
 
     FATFS fatfs;
     FIL file;
